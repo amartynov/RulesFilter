@@ -1,0 +1,27 @@
+#utf-8
+#Prog name
+prog.name=Фильтр
+
+#Menu items
+menu.file=Файл
+menu.file.open=Открыть
+menu.file.export=Экспорт
+menu.file.exit=Выход
+
+menu.edit=Правка
+menu.edit.start=Старт
+
+menu.help=Помощь
+menu.help.about=О программе
+
+#File messages
+file.open=Открыт файл:
+file.open.error=Файл не найден:
+file.read.error=Не могу прочесть файл
+
+#Logs messages
+log.import.ip = Импортировано ip правил:
+
+#panels headers
+panel.input=Входной файл
+panel.output=Выходной файл
