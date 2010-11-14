@@ -9,6 +9,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import org.filter.dto.IPRule;
+import org.filter.dto.IPRuleIntersection;
 import org.filter.listeners.IPRuleCBActionListener;
 import org.filter.listeners.IPRuleCBMouseListener;
 import org.filter.listeners.SelectAllListener;
@@ -68,6 +69,7 @@ public class CheckBoxPanel extends JPanel{
     selectAll.setEnabled(true);
     selectAll.setSelected(flag);
     grPanel.setRulesJCB(rulesJB);
+    grPanel.setIntersectionRules(getRulesIntersectionList(ipRules));
   }
 
   public ArrayList<IPRuleJCheckBox> getRulesJB() {
@@ -80,6 +82,18 @@ public class CheckBoxPanel extends JPanel{
 
   public JCheckBox getSelectAll() {
     return selectAll;
+  }
+  
+  private ArrayList<IPRuleIntersection> getRulesIntersectionList(ArrayList<IPRule> inputIpRules) {
+    ArrayList<IPRuleIntersection> res = new ArrayList<IPRuleIntersection>();
+    for (int i = 0; i < inputIpRules.size() - 1; i++){
+      IPRule irule = inputIpRules.get(i);
+      for(int j = i + 1; j < inputIpRules.size(); j++){
+        IPRuleIntersection inter = irule.intersection(inputIpRules.get(j));
+        res.add(inter);
+      }
+    }
+    return res;
   }
   
   

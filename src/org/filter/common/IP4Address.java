@@ -64,15 +64,25 @@ public class IP4Address {
   public String toString(){
 	  StringBuilder sb = new StringBuilder();
 	  StringBuilder mask = new StringBuilder();
-/*	  sb.append(addr[0]);
-	  mask.append(this.mask[0]);
+	  
+	  sb.append(getByte(this.addr, 0));
+    mask.append(getByte(this.mask, 0));
 	  for(int i = 1; i < 4; i++){
-	    sb.append(".").append(addr[i]);
-	    mask.append(".").append(this.mask[i]);
+	    sb.append(".").append(getByte(this.addr, i));
+	    mask.append(".").append(getByte(this.mask, i));
 	  }
-	  sb.append("/").append(mask.toString());*/
+	  
+	  sb.append("/").append(mask.toString());
 	  return sb.toString();
 	}
+  
+  private int getByte(long val, int i){
+    long m = 0xff000000L;
+    m >>= 8 * i;
+    long buf = val & m;
+    buf >>= 8 * (3 - i);
+    return (int)buf;
+  }
 	
 	public LineProjection getLineProjection(){
 	  long m = mask;
@@ -91,15 +101,6 @@ public class IP4Address {
 //	  start = Math.log10(start);
 //	  length = Math.log10(length / maxIpAddress);
 	  return new LineProjection(start, length);
-	}
-	
-	private long toLong(byte[] b){
-	  long res = b[0];
-	  for(int i = 1; i < 4; i++){
-	    res <<= 8;
-	    res |= b[i];
-	  }	  
-	  return res;
 	}
 	
 	public static ArrayList<IP4Address> intersection(ArrayList<IP4Address> list1, ArrayList<IP4Address> list2) {
@@ -134,6 +135,20 @@ public class IP4Address {
 	    return addr;
 	  }
 	  return null;
+	}
+	
+	public ArrayList<IP4Address> decomposit(IP4Address addr){
+	  ArrayList<IP4Address> res = new ArrayList<IP4Address>();
+	  IP4Address buf = new IP4Address();
+	  buf.setMask(addr.getMask());
+	  buf.setAddr(addr.getAddr());
+	  res.add(buf);
+	  return res;
+	}
+	
+	public boolean equals(IP4Address address){
+	  if(address.getAddr() == addr && address.getMask() == mask) return true;
+	  return false;
 	}
 	
 }

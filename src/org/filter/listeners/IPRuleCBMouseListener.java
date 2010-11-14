@@ -36,7 +36,7 @@ public class IPRuleCBMouseListener implements MouseListener{
 		if(e.getButton() == MouseEvent.BUTTON3) {
 		  final JDialog dialog = new JDialog();
 		  dialog.setLayout(null);
-		  dialog.setSize(200, 200);
+		  dialog.setSize(500, 200);
 		  dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		  
 		  JLabel l = new JLabel(rule.toString());
@@ -48,15 +48,15 @@ public class IPRuleCBMouseListener implements MouseListener{
         @Override
         public void actionPerformed(ActionEvent e) {
           dialog.dispose();
-          
         }
       });
 		  
 		  dialog.setModal(false);
-		  dialog.setVisible(true);
 		  
 		  dialog.add(l);
 		  dialog.add(button);
+		  
+		  dialog.setVisible(true);
 		}
 		
 	}

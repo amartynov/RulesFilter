@@ -8,8 +8,11 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 
 import org.filter.GraphicAxises;
+import org.filter.RuleAction;
 import org.filter.common.Activity;
 import org.filter.dto.IPRule;
+import org.filter.dto.IPRuleIntersection;
+import org.filter.dto.IPRuleRectangle;
 import org.filter.dto.LineProjection;
 
 public class GraphicPanel extends JPanel{
@@ -21,17 +24,20 @@ public class GraphicPanel extends JPanel{
 	
 	private static final Color acceptRuleColor = new Color(0, 200, 0);
 	private static final Color dropRuleColor = new Color(200, 0, 0);
-	private static final Color intersectionRuleColor = new Color(0, 0, 0);
+	private static final Color ruleBorderColor = new Color(0, 0, 200);
+	private static final Color intersectionRuleColor = new Color(10, 10, 10);
 	private static final Color textColor = new Color(0, 0, 0);
 
 	private int lx;
 	private int ly;
 	private ArrayList<IPRuleJCheckBox> rulesJCB;
+	private ArrayList<IPRuleIntersection> intersectionRules;
 	
 	private GraphicAxises xAxis;
 	private GraphicAxises yAxis;
 	
-	private ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
+	private ArrayList<IPRuleRectangle> rects = new ArrayList<IPRuleRectangle>();
+	private ArrayList<IPRuleRectangle> intersectionsRects = new ArrayList<IPRuleRectangle>();
 	
 	
 	private final int axisDelta = 20;
@@ -68,22 +74,18 @@ public class GraphicPanel extends JPanel{
 	
 	private void drawRectangles(Graphics g) {
     if (!rects.isEmpty()) {
-      g.setColor(new Color(0, 0, 200, 60));
-      ArrayList<Rectangle> intersections = new ArrayList<Rectangle>();
-      for (int i = 0; i < rects.size() - 1; i++) {
-        Rectangle ri = rects.get(i);
-        for (int j = i + 1; j < rects.size(); j++) {
-          Rectangle rj = rects.get(j);
-          Rectangle intersection = rj.intersection(ri);
-          if (!intersection.isEmpty())
-            intersections.add(intersection);
-        }
+      for (int i = 0; i < rects.size(); i++) {
+        IPRuleRectangle ruleRect = rects.get(i);
+        Rectangle ri = ruleRect.getRect();
+        g.setColor(ruleRect.getColor());
         g.fillRect((int) ri.getX(), (int) ri.getY(), (int) ri.getWidth(), (int) ri.getHeight());
+        g.setColor(ruleBorderColor);
+        g.drawRect((int) ri.getX(), (int) ri.getY(), (int) ri.getWidth(), (int) ri.getHeight());
       }
-      Rectangle lr = rects.get(rects.size() - 1);
-      g.fillRect((int) lr.getX(), (int) lr.getY(), (int) lr.getWidth(), (int) lr.getHeight());
-      g.setColor(intersectionRuleColor);
-      for (Rectangle r : intersections) {
+      
+      for (IPRuleRectangle ruleRect : intersectionsRects) {
+        Rectangle r = ruleRect.getRect();
+        g.setColor(ruleRect.getColor());
         g.clearRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
         g.fillRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
       }
@@ -99,19 +101,35 @@ public class GraphicPanel extends JPanel{
 				for(IPRuleJCheckBox r : rulesJCB){
 				  IPRule rule = r.getRule();
 				  if(rule.getActivity() == Activity.active){
-				    rects.addAll(getRuleRects(rule));
+				    rects.addAll(getRuleRects(rule, null));
 				  }
-					/*if(r.isSelected()) {
-						rects.addAll(getRuleRects(rule));
-					}*/
 				}
+			}
+			if(intersectionsRects.size() == 0){
+			  if(intersectionRules != null) {
+			    for(IPRuleIntersection r : intersectionRules) {
+			      if(r.getRule1().getActivity() == Activity.active && r.getRule2().getActivity() == Activity.active){
+			        intersectionsRects.addAll(getRuleRects(r, intersectionRuleColor));
+			      }
+			    }
+			  }
 			}
 			drawRectangles(g);
 			initPanel(g);
 		}
 	}
 	
-	public int getLx() {
+	
+	public ArrayList<IPRuleIntersection> getIntersectionRules() {
+    return intersectionRules;
+  }
+
+  public void setIntersectionRules(ArrayList<IPRuleIntersection> intersectionRules) {
+    this.intersectionRules = intersectionRules;
+    this.repaint();
+  }
+
+  public int getLx() {
 		return lx;
 	}
 	
@@ -133,7 +151,7 @@ public class GraphicPanel extends JPanel{
 
 	public void setRulesJCB(ArrayList<IPRuleJCheckBox> rulesJCB) {
 		this.rulesJCB = rulesJCB;
-		rects.clear();
+		clearRects();
 		paintComponent(this.getGraphics());
 	}
 
@@ -143,7 +161,7 @@ public class GraphicPanel extends JPanel{
 
 	public void setxAxis(GraphicAxises xAxis) {
 		this.xAxis = xAxis;
-		rects.clear();
+		clearRects();
 		paintComponent(this.getGraphics());
 	}
 
@@ -153,12 +171,12 @@ public class GraphicPanel extends JPanel{
 
 	public void setyAxis(GraphicAxises yAxis) {
 		this.yAxis = yAxis;
-		rects.clear();
+		clearRects();
 		paintComponent(this.getGraphics());
 	}
 	
-	private ArrayList<Rectangle> getRuleRects(IPRule rule){
-		ArrayList<Rectangle> res = new ArrayList<Rectangle>();
+	private ArrayList<IPRuleRectangle> getRuleRects(IPRule rule, Color color){
+		ArrayList<IPRuleRectangle> res = new ArrayList<IPRuleRectangle>();
 		ArrayList<LineProjection> xlist = null, ylist = null;
 		switch (xAxis){
 		case destIP:
@@ -199,10 +217,18 @@ public class GraphicPanel extends JPanel{
 		if(xlist != null && ylist != null) {
 			for(LineProjection xp : xlist){
 				for(LineProjection yp : ylist){
-					res.add(new Rectangle( d2i(xp.getStart() * lx) + xaxisStart, 
-					                       d2i((1 - yp.getStart() - yp.getLength()) * ly) + yaxisStart, 
-					                       d2i(xp.getLength() * lx), 
-					                       d2i(yp.getLength() * ly)));
+				  IPRuleRectangle r = new IPRuleRectangle();
+				  r.setRect(new Rectangle( d2i(xp.getStart() * lx) + xaxisStart, 
+                                 d2i((1 - yp.getStart() - yp.getLength()) * ly) + yaxisStart, 
+                                 d2i(xp.getLength() * lx), 
+                                 d2i(yp.getLength() * ly)));
+				  if(color == null){
+				    r.setColor(rule.getRuleAction() == RuleAction.Accept ? acceptRuleColor : dropRuleColor);
+				  } else {
+				    r.setColor(color);
+				  }
+				  
+					res.add(r);
 				}
 			}
 		}
@@ -220,6 +246,7 @@ public class GraphicPanel extends JPanel{
 	
 	public void clearRects(){
 		rects.clear();
+		intersectionsRects.clear();
 	}
 	
 }

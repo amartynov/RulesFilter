@@ -27,6 +27,7 @@ public class SelectAllListener implements ActionListener{
 			cb.setSelected(val);
 			cb.getRule().setActivity(val ? Activity.active : Activity.inactive);
 		}
+		panel.clearRects();
 		panel.repaint();
 	}
 

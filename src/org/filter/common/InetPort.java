@@ -81,7 +81,7 @@ public class InetPort {
       length = 1 / maxPort;
     } else {
       start = lPort.doubleValue() / maxPort;
-      length = rPort.doubleValue() / maxPort;
+      length = (rPort.doubleValue() - lPort.doubleValue()) / maxPort;
     }
 	  return new LineProjection(start, length);
 	}
@@ -145,6 +145,37 @@ public class InetPort {
     }
     
     return res.isEmpty() ? null : res;
+  }
+  
+  public ArrayList<InetPort> decomposit(InetPort port){
+    ArrayList<InetPort> res = new ArrayList<InetPort>();
+    if(port.port != null){
+      if(this.port != null){
+        res.add(new InetPort(port.port));
+      } else {
+        if(!this.lPort.equals(port.port)) res.add(new InetPort(this.lPort, port.port - 1));
+        res.add(new InetPort(port.port));
+        if(!this.rPort.equals(port.port)) res.add(new InetPort(port.port + 1, this.rPort));
+      }
+    } else {
+      if(!this.lPort.equals(port.getlPort())) res.add(new InetPort(this.lPort, port.getlPort() - 1));
+      res.add(new InetPort(port.getlPort(), port.getrPort()));
+      if(!this.rPort.equals(port.getrPort())) res.add(new InetPort(port.getrPort() + 1, this.rPort));
+    }
+    return res;
+  }
+  
+  public boolean equals(InetPort inetPort) {
+    if(inetPort.getPort() != null && this.port != null){
+      if(inetPort.getPort().equals(this.port)){
+        return true;
+      }
+    } else {
+      if(inetPort.getlPort().equals(this.lPort) && inetPort.getrPort().equals(this.rPort)){
+        return true;
+      }
+    }
+    return false;
   }
 	
 	/* RFC 1700 (October 1994)

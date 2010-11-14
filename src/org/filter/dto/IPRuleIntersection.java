@@ -2,24 +2,20 @@ package org.filter.dto;
 
 public class IPRuleIntersection extends IPRule {
   
-  private int ruleNumber_1;
-  private int ruleNumber_2;
+  private IPRule rule1;
+  private IPRule rule2;
   
-  public int getRuleNumber_1() {
-    return ruleNumber_1;
+  public IPRule getRule1() {
+    return rule1;
   }
-  
-  public void setRuleNumber_1(int ruleNumber_1) {
-    this.ruleNumber_1 = ruleNumber_1;
+  public void setRule1(IPRule rule1) {
+    this.rule1 = rule1;
   }
-  
-  public int getRuleNumber_2() {
-    return ruleNumber_2;
+  public IPRule getRule2() {
+    return rule2;
   }
-  
-  public void setRuleNumber_2(int ruleNumber_2) {
-    this.ruleNumber_2 = ruleNumber_2;
+  public void setRule2(IPRule rule2) {
+    this.rule2 = rule2;
   }
-  
   
 }

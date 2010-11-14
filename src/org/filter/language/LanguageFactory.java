@@ -8,7 +8,6 @@ public class LanguageFactory {
   private static final String ext = "prop";
   
   public static LabelList create(String langLabel){
-    //TODO:
     return getLabelsFromFile(langLabel + "." + ext);
   }
 

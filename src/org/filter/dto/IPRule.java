@@ -307,6 +307,7 @@ public class IPRule extends Rule {
 	}
 	
 	private ArrayList<LineProjection> getPortLineList(ArrayList<InetPort> list) {
+	  if(list == null) return null;
 		ArrayList<LineProjection> res = new ArrayList<LineProjection>();
 		for(InetPort port : list) {
 			//TODO: icmp rule do not have a port
@@ -333,6 +334,7 @@ public class IPRule extends Rule {
   }
 	
 	private ArrayList<LineProjection> getAddrLineList(ArrayList<IP4Address> list){
+	  if(list == null) return null;
 	  ArrayList<LineProjection> res = new ArrayList<LineProjection>();
     for(IP4Address addr : list) {
       res.add(addr.getLineProjection());
@@ -350,6 +352,7 @@ public class IPRule extends Rule {
 	}
 	
 	public ArrayList<LineProjection> getProtocolLineList(){
+	  if(protocol == null) return null;
 	  ArrayList<LineProjection> res = new ArrayList<LineProjection>();
 	  res.add(protocol.getLineProjection());
 	  return res;
@@ -358,13 +361,15 @@ public class IPRule extends Rule {
 	public String toString(){
 	  StringBuilder sb = new StringBuilder();
 	  sb.append("ip:").append(getNumber()).append(":").append(getRuleAction().getLabel()).append(":").append(getRuleLog()).append(":");
+	  sb.append(getIn()).append(":").append(getOut()).append(":").append(getTimeInterval()).append(":").append(getProtocol()).append(":");
+	  sb.append(getSrcAddress()).append(":").append(getSrcPort()).append(":");
 	  return sb.toString();
 	}
 	
 	public IPRuleIntersection intersection(IPRule rule){
 	  IPRuleIntersection res = new IPRuleIntersection();
-	  res.setRuleNumber_1(this.getNumber());
-	  res.setRuleNumber_2(rule.getNumber());
+	  res.setRule1(this);
+	  res.setRule2(rule);
 	  res.setSrcAddress(IP4Address.intersection(this.srcAddress, rule.getSrcAddress()));
 	  res.setDestAddress(IP4Address.intersection(this.destAddress, rule.getDestAddress()));
 	  res.setSrcPort(InetPort.intersection(this.srcPort, rule.getSrcPort()));
@@ -386,5 +391,41 @@ public class IPRule extends Rule {
 	  if(this.srcPort == null) return true;
 	  if(this.protocol == null) return true;
 	  return false;
+	}
+	
+	public IPRule clone(){
+	  IPRule rule = new IPRule();
+	  rule.setActivity(this.getActivity());
+	  rule.setDestAddress(this.getDestAddress());
+	  rule.setDestPort(this.getDestPort());
+	  rule.setLabel(this.getLabel());
+	  rule.setNumber(this.getNumber());
+	  rule.setProtocol(this.getProtocol());
+	  rule.setRuleAction(this.getRuleAction());
+	  rule.setSrcAddress(this.getSrcAddress());
+	  rule.setSrcPort(this.getSrcPort());	  
+	  rule.setComment(this.getComment());
+	  rule.setFlags_TOS(rule.getFlags_TOS());
+	  rule.setFragmentation(this.getFragmentation());
+	  rule.setIcmp_code(this.getIcmp_code());
+	  rule.setIn(this.getIn());
+	  rule.setLength(this.getLength());
+	  rule.setOut(this.getOut());
+	  rule.setPriority(this.getPriority());
+	  rule.setRuleLog(this.getRuleLog());
+	  rule.setTimeInterval(this.getTimeInterval());
+	  rule.setTtl(this.getTtl());
+	  return rule;
+	}
+	
+	public boolean equals(IPRule rule){
+	  if(protocol != rule.getProtocol() ||
+	     !destAddress.equals(rule.getDestAddress()) ||
+	     !srcAddress.equals(rule.getSrcAddress()) ||
+	     !destPort.equals(rule.getDestPort()) ||
+	     !srcPort.equals(rule.getSrcPort())){
+	    return false;
+	  }
+	  return true;
 	}
 }

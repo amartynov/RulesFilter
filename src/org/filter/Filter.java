@@ -65,7 +65,10 @@ public class Filter {
 	private File openedFile;
 	
 	private final JFrame jfrm = new JFrame(labels.getProgName());
+	private JMenuItem start;
 	private final JTextArea logTA = new JTextArea();
+	
+	private ArrayList<IPRuleIntersection> intersection;
 	
 	public Filter() {
 //		JFrame jfrm = new JFrame("Filter");
@@ -193,30 +196,30 @@ public class Filter {
 		JMenuItem exitItem = new JMenuItem(labels.getMenuFileExitLabel());
 		
 		JMenu editMenu = new JMenu(labels.getMenuEditLabel());
-		final JMenuItem start =new JMenuItem(labels.getMenuEditStartLabel());
+		start =new JMenuItem(labels.getMenuEditStartLabel());
 		
 		JMenu helpMenu = new JMenu(labels.getMenuHelpLabel());
 		JMenuItem about = new JMenuItem(labels.getMenuHelpAboutLabel());
 		
 		//file menu settings
-//		OpenFileMenuItemListener ofListener = new OpenFileMenuItemListener(jfrm, logTA, start);
-//		openFileItem.addActionListener(ofListener);
 		openFileItem.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 			  JFileChooser jfc = new JFileChooser();
-				int retVal = jfc.showOpenDialog(jfrm);
+				int retVal = jfc.showOpenDialog(null);
 				if(retVal == JFileChooser.APPROVE_OPTION) {
 					openedFile = jfc.getSelectedFile();
 					inputIpRules = getIPRules(openedFile);
 					if(inputIpRules != null) {
 						logTA.append(labels.getLogImportIP() + " " + inputIpRules.size() + "\n");
 						outputIpRules.clear();
-						start.addActionListener(new StartMenuItemListener(inputIpRules, outputIpRules, outputPanel));
-						start.setEnabled(true);
 						((CheckBoxPanel)inputPanel.getComponent(0)).setRules(inputIpRules);
-						ArrayList<IPRuleIntersection> intersection = getRulesIntersectionList(inputIpRules);
+//						intersection = getRulesIntersectionList(inputIpRules);
+//						inputGraphic.setIntersectionRules(intersection);
+						intersection = inputGraphic.getIntersectionRules();
+						start.addActionListener(new StartMenuItemListener(outputIpRules, intersection,outputPanel));
+						start.setEnabled(true);
 					} 
 				}
 			}
@@ -289,13 +292,9 @@ public class Filter {
       for(int j = i + 1; j < inputIpRules.size(); j++){
         IPRuleIntersection inter = irule.intersection(inputIpRules.get(j));
         res.add(inter);
-        //TODO:
-        /*if(inter.isEmpty()) {
-          
-        }*/
       }
     }
     return res;
   }
-
+	
 }
