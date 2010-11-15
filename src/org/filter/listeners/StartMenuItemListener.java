@@ -29,64 +29,62 @@ public class StartMenuItemListener implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     for(IPRuleIntersection rule : intersection){
       if(!rule.isEmpty()){
-        outputRulesList.addAll(decompositRule(rule));      
+        outputRulesList.addAll(decompositRuleByIntersection(rule));      
       }
     }
     ((CheckBoxPanel)outputPanel.getComponent(0)).setRules(outputRulesList);
     
   }
   
-  private ArrayList<IPRule> decompositRule(IPRuleIntersection inter){
+  private ArrayList<IPRule> decompositRuleByIntersection(IPRuleIntersection inter){
     ArrayList<IPRule> res = new ArrayList<IPRule>();
     
     ArrayList<IPRule> buf = new ArrayList<IPRule>();
     
-    for(InetPort srcPort : getRulesBySrcPort(inter.getRule1(), inter)) {
-      for(InetPort destPort : getRulesByDestPort(inter.getRule1(), inter)) {
-        for(IP4Address srcAddr : getRulesBySrcAddress(inter.getRule1(), inter)) {
-          for(IP4Address destAddr : getRulesByDestAddress(inter.getRule1(), inter)) {
-            for(Protocol protocol : getRulesByProtocol(inter.getRule1(), inter)) {
+    buf.addAll(decompositRule(inter, inter.getRule1()));
+    buf.addAll(decompositRule(inter, inter.getRule2()));
+    
+    //TODO:
+    return buf;
+  }
+  
+  private ArrayList<IPRule> decompositRule(IPRuleIntersection inter, IPRule rule){
+    ArrayList<IPRule> res = new ArrayList<IPRule>();
+    int number = 1;
+    for(InetPort srcPort : getRulesBySrcPort(rule, inter)) {
+      for(InetPort destPort : getRulesByDestPort(rule, inter)) {
+        for(IP4Address srcAddr : getRulesBySrcAddress(rule, inter)) {
+          for(IP4Address destAddr : getRulesByDestAddress(rule, inter)) {
+            for(Protocol protocol : getRulesByProtocol(rule, inter)) {
 //              IPRule rule = new IPRule();
-              IPRule rule = inter.getRule1().clone();
-              rule.setProtocol(protocol);
+              IPRule ruleRes = rule.clone();
+              ruleRes.setProtocol(protocol);
               ArrayList<IP4Address> dal = new ArrayList<IP4Address>();
               dal.add(destAddr);
-              rule.setDestAddress(dal);
+              ruleRes.setDestAddress(dal);
               ArrayList<IP4Address> sal = new ArrayList<IP4Address>();
               sal.add(srcAddr);
-              rule.setSrcAddress(sal);
+              ruleRes.setSrcAddress(sal);
               ArrayList<InetPort> dpl = new ArrayList<InetPort>();
               dpl.add(destPort);
-              rule.setDestPort(dpl);
+              ruleRes.setDestPort(dpl);
               ArrayList<InetPort> spl = new ArrayList<InetPort>();
               spl.add(srcPort);
-              rule.setSrcPort(spl);
+              ruleRes.setSrcPort(spl);
               
-              rule.setActivity(inter.getRule1().getActivity());
-              rule.setLabel(inter.getRule1().getLabel());
-              rule.setNumber(inter.getRule1().getNumber());
+              int n = Integer.parseInt((new Integer(rule.getNumber())).toString() + number++);
+              ruleRes.setNumber(n);
+//              ruleRes.setActivity(rule.getActivity());
+//              ruleRes.setLabel(rule.getLabel());
               
-              buf.add(rule);
+              res.add(ruleRes);
             }
           }
         }
       }
     }
-
-    /*
-    buf.addAll(getRulesBySrcPort(inter.getRule2(), inter));
     
-    buf.addAll(getRulesByDestPort(inter.getRule2(), inter));
-    
-    buf.addAll(getRulesBySrcAddress(inter.getRule2(), inter));
-    
-    buf.addAll(getRulesByDestAddress(inter.getRule2(), inter));
-    
-    buf.addAll(getRulesByProtocol(inter.getRule2(), inter));*/
-
-    
-    //TODO:
-    return buf;
+    return res;
   }
   
   private ArrayList<InetPort> getRulesBySrcPort(IPRule rule, IPRuleIntersection inter){
