@@ -177,6 +177,16 @@ public class InetPort {
     }
     return false;
   }
+  
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    if(port != null) {
+      sb.append(port);
+    } else {
+      sb.append(lPort).append('-').append(rPort);
+    }
+    return sb.toString();
+  }
 	
 	/* RFC 1700 (October 1994)
 	Port Assignments:

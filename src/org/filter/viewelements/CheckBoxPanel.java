@@ -61,7 +61,6 @@ public class CheckBoxPanel extends JPanel{
       }
       rulesJB.add(ruleCB);
       panelCB.add(ruleCB);
-//      panelCB.addMouseListener(new IPRuleCBMouseListener(r));
       ruleCB.addMouseListener(new IPRuleCBMouseListener(r));
     }
     scroll.setViewportView(panelCB);

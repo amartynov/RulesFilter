@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.filter.Protocol;
 import org.filter.RuleAction;
 import org.filter.common.Activity;
-import org.filter.common.IP4Address;
+import org.filter.common.IP4AddressInterval;
 import org.filter.common.InetPort;
 
 public class IPRule extends Rule {
@@ -17,9 +17,9 @@ public class IPRule extends Rule {
 	private String out;
 	private String timeInterval;
 	private Protocol protocol;
-	private ArrayList<IP4Address> srcAddress;
+	private ArrayList<IP4AddressInterval> srcAddress;
 	private ArrayList<InetPort> srcPort;
-	private ArrayList<IP4Address> destAddress;
+	private ArrayList<IP4AddressInterval> destAddress;
 	private ArrayList<InetPort> destPort;
 	
 	//TODO: старшинство?
@@ -112,15 +112,23 @@ public class IPRule extends Rule {
 		this.comment = comment;
 	}
 
-	public ArrayList<IP4Address> getSrcAddress() {
-		return srcAddress;
-	}
+	public ArrayList<IP4AddressInterval> getSrcAddress() {
+    return srcAddress;
+  }
 
-	public void setSrcAddress(ArrayList<IP4Address> srcAddress) {
-		this.srcAddress = srcAddress;
-	}
+  public void setSrcAddress(ArrayList<IP4AddressInterval> srcAddress) {
+    this.srcAddress = srcAddress;
+  }
 
-	public ArrayList<InetPort> getSrcPort() {
+  public void setDestAddress(ArrayList<IP4AddressInterval> destAddress) {
+    this.destAddress = destAddress;
+  }
+  
+  public ArrayList<IP4AddressInterval> getDestAddress() {
+    return destAddress;
+  }
+
+  public ArrayList<InetPort> getSrcPort() {
 		return srcPort;
 	}
 
@@ -158,14 +166,6 @@ public class IPRule extends Rule {
 			}
 		}
 		return portsArray;
-	}
-
-	public ArrayList<IP4Address> getDestAddress() {
-		return destAddress;
-	}
-
-	public void setDestAddress(ArrayList<IP4Address> destAddress) {
-		this.destAddress = destAddress;
 	}
 
 	public ArrayList<InetPort> getDestPort() {
@@ -333,20 +333,21 @@ public class IPRule extends Rule {
     return getAddrLineList(destAddress);
   }
 	
-	private ArrayList<LineProjection> getAddrLineList(ArrayList<IP4Address> list){
+	private ArrayList<LineProjection> getAddrLineList(ArrayList<IP4AddressInterval> list){
 	  if(list == null) return null;
 	  ArrayList<LineProjection> res = new ArrayList<LineProjection>();
-    for(IP4Address addr : list) {
-      res.add(addr.getLineProjection());
+    for(IP4AddressInterval addr : list) {
+      LineProjection pr = addr.getLineProjection();
+      if(pr != null) res.add(pr);
     }
     return res;
 	}
 	
-	private static ArrayList<IP4Address> strToAddress(String str) {
-		ArrayList<IP4Address> res = new ArrayList<IP4Address>();
+	private static ArrayList<IP4AddressInterval> strToAddress(String str) {
+		ArrayList<IP4AddressInterval> res = new ArrayList<IP4AddressInterval>();
 		String[] buf = str.split(",");
 		for(String addr : buf){
-		  res.add(new IP4Address(addr));
+		  res.add(new IP4AddressInterval(addr));
 		}
 		return res;
 	}
@@ -361,17 +362,42 @@ public class IPRule extends Rule {
 	public String toString(){
 	  StringBuilder sb = new StringBuilder();
 	  sb.append("ip:").append(getNumber()).append(":").append(getRuleAction().getLabel()).append(":").append(getRuleLog()).append(":");
-	  sb.append(getIn()).append(":").append(getOut()).append(":").append(getTimeInterval()).append(":").append(getProtocol()).append(":");
-	  sb.append(getSrcAddress()).append(":").append(getSrcPort()).append(":");
+	  sb.append(getIn()).append(":").append(getOut()).append(":").append(getTimeInterval()).append(":").append(getProtocol().getLabel()).append(":");
+	  sb.append(AddressListToString(getSrcAddress())).append(":").append(PortListToString(getSrcPort())).append(":");
+	  sb.append(AddressListToString(getDestAddress())).append(":").append(PortListToString(getDestPort())).append(":").append(getActivity());
 	  return sb.toString();
 	}
+	
+	private String AddressListToString(ArrayList<IP4AddressInterval> list) {
+	  StringBuilder sb = new StringBuilder();
+    int len = list.size();
+    if(len != 0) {
+      sb.append(list.get(0).toString());       
+      for(int i = 1; i < len; i++) {
+        sb.append(",").append(list.get(i).toString());
+      }
+    }
+    return sb.toString();
+	}
+	
+	private String PortListToString(ArrayList<InetPort> list) {
+    StringBuilder sb = new StringBuilder();
+    int len = list.size();
+    if(len != 0) {
+      sb.append(list.get(0).toString());       
+      for(int i = 1; i < len; i++) {
+        sb.append(",").append(list.get(i).toString());
+      }
+    }
+    return sb.toString();
+  }
 	
 	public IPRuleIntersection intersection(IPRule rule){
 	  IPRuleIntersection res = new IPRuleIntersection();
 	  res.setRule1(this);
 	  res.setRule2(rule);
-	  res.setSrcAddress(IP4Address.intersection(this.srcAddress, rule.getSrcAddress()));
-	  res.setDestAddress(IP4Address.intersection(this.destAddress, rule.getDestAddress()));
+	  res.setSrcAddress(IP4AddressInterval.intersection(this.srcAddress, rule.getSrcAddress()));
+	  res.setDestAddress(IP4AddressInterval.intersection(this.destAddress, rule.getDestAddress()));
 	  res.setSrcPort(InetPort.intersection(this.srcPort, rule.getSrcPort()));
 	  res.setDestPort(InetPort.intersection(this.destPort, rule.getDestPort()));
 	  res.setProtocol(this.protocol == rule.getProtocol() ? this.protocol : null);
@@ -420,12 +446,137 @@ public class IPRule extends Rule {
 	
 	public boolean equals(IPRule rule){
 	  if(protocol != rule.getProtocol() ||
-	     !destAddress.equals(rule.getDestAddress()) ||
-	     !srcAddress.equals(rule.getSrcAddress()) ||
-	     !destPort.equals(rule.getDestPort()) ||
-	     !srcPort.equals(rule.getSrcPort())){
+	     !AddressEquals(destAddress, rule.getDestAddress()) ||
+	     !AddressEquals(srcAddress, rule.getSrcAddress()) ||
+	     !PortEquals(destPort, rule.getDestPort()) ||
+	     !PortEquals(srcPort, rule.getSrcPort())){
 	    return false;
 	  }
 	  return true;
 	}
+	
+	private boolean AddressEquals(ArrayList<IP4AddressInterval> addr1, ArrayList<IP4AddressInterval> addr2) {
+	  boolean flag = false;
+	  for(IP4AddressInterval interval1 : addr1) {
+	    for(IP4AddressInterval interval2 : addr2) {
+	      if(interval1.equals(interval2)){
+	        flag = true;
+	      }
+	    }
+	    if(flag) {
+	      flag = false;
+	    } else {
+	      return false;
+	    }
+	  }
+	  return true;
+	}
+	
+	private boolean PortEquals(ArrayList<InetPort> port1, ArrayList<InetPort> port2) {
+    boolean flag = false;
+    for(InetPort p1 : port1) {
+      for(InetPort p2 : port2) {
+        if(p1.equals(p2)){
+          flag = true;
+        }
+      }
+      if(flag) {
+        flag = false;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public ArrayList<IPRule> sub(IPRule rule) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  
+  private ArrayList<IPRule> decompositRule(IPRuleIntersection inter, IPRule rule){
+    ArrayList<IPRule> res = new ArrayList<IPRule>();
+    int number = 1;
+    for(InetPort srcPort : getRulesBySrcPort(rule, inter)) {
+      for(InetPort destPort : getRulesByDestPort(rule, inter)) {
+        for(IP4AddressInterval srcAddr : getRulesBySrcAddress(rule, inter)) {
+          for(IP4AddressInterval destAddr : getRulesByDestAddress(rule, inter)) {
+            for(Protocol protocol : getRulesByProtocol(rule, inter)) {
+//              IPRule rule = new IPRule();
+              IPRule ruleRes = rule.clone();
+              ruleRes.setProtocol(protocol);
+              ArrayList<IP4AddressInterval> dal = new ArrayList<IP4AddressInterval>();
+              dal.add(destAddr);
+              ruleRes.setDestAddress(dal);
+              ArrayList<IP4AddressInterval> sal = new ArrayList<IP4AddressInterval>();
+              sal.add(srcAddr);
+              ruleRes.setSrcAddress(sal);
+              ArrayList<InetPort> dpl = new ArrayList<InetPort>();
+              dpl.add(destPort);
+              ruleRes.setDestPort(dpl);
+              ArrayList<InetPort> spl = new ArrayList<InetPort>();
+              spl.add(srcPort);
+              ruleRes.setSrcPort(spl);
+              
+              int n = Integer.parseInt((new Integer(rule.getNumber())).toString() + number++);
+              ruleRes.setNumber(n);
+//              ruleRes.setActivity(rule.getActivity());
+//              ruleRes.setLabel(rule.getLabel());
+              
+              res.add(ruleRes);
+            }
+          }
+        }
+      }
+    }
+    
+    return res;
+  }
+  
+  private ArrayList<InetPort> getRulesBySrcPort(IPRule rule, IPRuleIntersection inter){
+    ArrayList<InetPort> res = new ArrayList<InetPort>();
+    for(InetPort port : rule.getSrcPort()){
+      for (InetPort interPort : inter.getSrcPort()) {
+        res.addAll(port.decomposit(interPort));
+      }
+    }
+    return res;
+  }
+
+  private ArrayList<InetPort> getRulesByDestPort(IPRule rule, IPRuleIntersection inter){
+    ArrayList<InetPort> res = new ArrayList<InetPort>();
+    for(InetPort port : rule.getDestPort()){
+      for (InetPort interPort : inter.getDestPort()) {
+        res.addAll(port.decomposit(interPort));
+      }
+    }
+    return res;
+  }
+  
+  private ArrayList<IP4AddressInterval> getRulesBySrcAddress(IPRule rule, IPRuleIntersection inter) {
+    ArrayList<IP4AddressInterval> res = new ArrayList<IP4AddressInterval>();
+    for(IP4AddressInterval ruleIpAddr : rule.getSrcAddress()){
+      for(IP4AddressInterval interIpAddr : inter.getSrcAddress()){
+        res.addAll(ruleIpAddr.decomposit(interIpAddr));
+      }
+    }
+    return res;
+  }
+  
+  private ArrayList<IP4AddressInterval> getRulesByDestAddress(IPRule rule, IPRuleIntersection inter) {
+    ArrayList<IP4AddressInterval> res = new ArrayList<IP4AddressInterval>();
+    for(IP4AddressInterval ruleIpAddr : rule.getDestAddress()){
+      for(IP4AddressInterval interIpAddr : inter.getDestAddress()){
+        res.addAll(ruleIpAddr.decomposit(interIpAddr));
+      }
+    }
+    return res;
+  }
+  
+  private ArrayList<Protocol> getRulesByProtocol(IPRule rule, IPRuleIntersection inter) {
+    ArrayList<Protocol> res = new ArrayList<Protocol>();
+    res.add(inter.getProtocol());
+    return res;
+  }
+  
 }

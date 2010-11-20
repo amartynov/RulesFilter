@@ -192,7 +192,7 @@ public class Filter {
 		//Menu settings
 		JMenu fileMenu = new JMenu(labels.getMenuFileLabel());
 		JMenuItem openFileItem = new JMenuItem(labels.getMenuFileOpenLabel());
-		JMenuItem exportFileItem = new JMenuItem(labels.getMenuFileExportLabel());
+		final JMenuItem exportFileItem = new JMenuItem(labels.getMenuFileExportLabel());
 		JMenuItem exitItem = new JMenuItem(labels.getMenuFileExitLabel());
 		
 		JMenu editMenu = new JMenu(labels.getMenuEditLabel());
@@ -218,7 +218,7 @@ public class Filter {
 //						intersection = getRulesIntersectionList(inputIpRules);
 //						inputGraphic.setIntersectionRules(intersection);
 						intersection = inputGraphic.getIntersectionRules();
-						start.addActionListener(new StartMenuItemListener(outputIpRules, intersection,outputPanel));
+						start.addActionListener(new StartMenuItemListener(outputIpRules, intersection, outputPanel, exportFileItem));
 						start.setEnabled(true);
 					} 
 				}
@@ -228,7 +228,7 @@ public class Filter {
 		exitItem.addActionListener(new ExitMenuItemListener());
 		
 		exportFileItem.setEnabled(false);
-		exportFileItem.addActionListener(new ExportFileMenuItemListener());
+		exportFileItem.addActionListener(new ExportFileMenuItemListener(openedFile));
 		
 		fileMenu.add(openFileItem);
 		fileMenu.add(exportFileItem);
