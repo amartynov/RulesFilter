@@ -244,6 +244,12 @@ public class GraphicPanel extends JPanel{
 		return d.intValue();
 	}
 	
+	public void clear() {
+	  clearRects();
+	  intersectionRules = null;
+	  rulesJCB = null;
+	}
+	
 	public void clearRects(){
 		rects.clear();
 		intersectionsRects.clear();

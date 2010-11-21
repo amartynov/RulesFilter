@@ -89,12 +89,10 @@ public class CheckBoxPanel extends JPanel{
       IPRule irule = inputIpRules.get(i);
       for(int j = i + 1; j < inputIpRules.size(); j++){
         IPRuleIntersection inter = irule.intersection(inputIpRules.get(j));
-        res.add(inter);
+        if(inter != null) res.add(inter);
       }
     }
     return res;
   }
-  
-  
   
 }

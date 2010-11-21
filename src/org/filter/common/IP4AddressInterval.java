@@ -77,18 +77,22 @@ public class IP4AddressInterval {
   
   public static IP4AddressInterval intersection(IP4AddressInterval ip1, IP4AddressInterval ip2){
     //TODO
-    IP4AddressInterval res;
+    IP4AddressInterval res = null;
     if(ip1.getRaddr() != null && ip2.getRaddr() != null) {
       ArrayList<Long> list = Utils.intesection(ip1.getLaddr(), ip1.getRaddr(), ip2.getLaddr(), ip2.getRaddr());
-      if(list.size() == 0) return null;
+      if(list == null) return null;
       res = new IP4AddressInterval(list.get(0), list.get(1));
     } else if(ip1.getRaddr() != null) {
-      res = new IP4AddressInterval(Utils.intersection(ip1.getLaddr(), ip1.getRaddr(), ip2.getLaddr()), null);
+      Long p = Utils.intersection(ip1.getLaddr(), ip1.getRaddr(), ip2.getLaddr());
+      if(p == null) return null;
+      res = new IP4AddressInterval(p, null);
     } else if(ip2.getRaddr() != null) {
-      res = new IP4AddressInterval(Utils.intersection(ip2.getLaddr(), ip2.getRaddr(), ip1.getLaddr()), null);
+      Long p = Utils.intersection(ip2.getLaddr(), ip2.getRaddr(), ip1.getLaddr());
+      if(p == null) return null;
+      res = new IP4AddressInterval(p, null);
     } else if(ip1.getLaddr().equals(ip2.getLaddr())) {
       res = new IP4AddressInterval(ip1.getLaddr(), null);
-    } else return null;
+    }
     return res;
   }
   
@@ -172,6 +176,10 @@ public class IP4AddressInterval {
     long buf = val & m;
     buf >>= 8 * (3 - i);
     return (int)buf;
+  }
+  
+  public boolean sum(IP4AddressInterval addr) {
+    return true;
   }
   
 }

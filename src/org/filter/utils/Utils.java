@@ -14,13 +14,15 @@ public class Utils {
    */
   public static ArrayList<Long> intesection(long start1, long end1, long start2, long end2) {
     //TODO: test
-    ArrayList<Long> res = new ArrayList<Long>();
+    ArrayList<Long> res = null;
     long maxStart = start1 < start2 ? start2 : start1;
     long minEnd = end1 < end2 ? end1 : end2;
     
     if(minEnd == maxStart) {
+      res = new ArrayList<Long>();
       res.add(new Long(maxStart));
     } else if(minEnd > maxStart) {
+      res = new ArrayList<Long>();
       res.add(new Long(maxStart));
       res.add(new Long(minEnd));
     }

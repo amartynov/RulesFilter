@@ -7,41 +7,35 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.JFileChooser;
+
 import org.filter.dto.IPRule;
 
 public class ExportFileMenuItemListener implements ActionListener{
 
   private ArrayList<IPRule> outputRulesList;
-  private File inputFile;
   
-  public ExportFileMenuItemListener(File inputFile) {
-    this.inputFile = inputFile;
-  }
   @Override
   public void actionPerformed(ActionEvent e) {
-    String oFileName;
-    if(inputFile != null) {
-      oFileName = inputFile.getPath() + inputFile.getName() + ".out";      
-    } else {
-      oFileName = "/home/antik/ruies.out.txt";
-    }
-    FileOutputStream fos = null;
-    try {
-      fos = new FileOutputStream(oFileName);
-      if(outputRulesList != null) {
-        for(IPRule rule : outputRulesList)
-          fos.write((rule.toString() + '\n').getBytes());
+    JFileChooser jfc = new JFileChooser();
+    int status = jfc.showSaveDialog(null);
+    if(status == JFileChooser.APPROVE_OPTION) {
+      File oFile = jfc.getSelectedFile();      
+      FileOutputStream fos = null;
+      try {
+        fos = new FileOutputStream(oFile);
+        if(outputRulesList != null) {
+          for(IPRule rule : outputRulesList)
+            fos.write((rule.toString() + '\n').getBytes());
+        }
+        fos.close();
+      } catch (IOException e1) {
+        e1.printStackTrace();
       }
-      fos.close();
-    } catch (IOException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
     }
     
   }
   public void setOutputRulesList(ArrayList<IPRule> outputRulesList) {
     this.outputRulesList = outputRulesList;
   }
-  
-
 }

@@ -214,7 +214,12 @@ public class Filter {
 					if(inputIpRules != null) {
 						logTA.append(labels.getLogImportIP() + " " + inputIpRules.size() + "\n");
 						outputIpRules.clear();
+						inputGraphic.clear();
+						outputGraphic.clear();
+//						((CheckBoxPanel)outputPanel.getComponent(0)).cl;
 						((CheckBoxPanel)inputPanel.getComponent(0)).setRules(inputIpRules);
+						inputGraphic.repaint();
+						outputGraphic.repaint();
 //						intersection = getRulesIntersectionList(inputIpRules);
 //						inputGraphic.setIntersectionRules(intersection);
 						intersection = inputGraphic.getIntersectionRules();
@@ -228,7 +233,7 @@ public class Filter {
 		exitItem.addActionListener(new ExitMenuItemListener());
 		
 		exportFileItem.setEnabled(false);
-		exportFileItem.addActionListener(new ExportFileMenuItemListener(openedFile));
+		exportFileItem.addActionListener(new ExportFileMenuItemListener());
 		
 		fileMenu.add(openFileItem);
 		fileMenu.add(exportFileItem);

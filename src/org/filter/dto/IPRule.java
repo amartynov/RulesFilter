@@ -401,6 +401,12 @@ public class IPRule extends Rule {
 	  res.setSrcPort(InetPort.intersection(this.srcPort, rule.getSrcPort()));
 	  res.setDestPort(InetPort.intersection(this.destPort, rule.getDestPort()));
 	  res.setProtocol(this.protocol == rule.getProtocol() ? this.protocol : null);
+	  
+	  if(res.getProtocol() == null &&
+	      res.getSrcAddress() == null &&
+	      res.getSrcPort() == null &&
+	      res.getDestAddress() == null &&
+	      res.getDestPort() == null) return null;
 	  return res;
 	}
 	
@@ -490,20 +496,34 @@ public class IPRule extends Rule {
   }
 
   public ArrayList<IPRule> sub(IPRule rule) {
-    // TODO Auto-generated method stub
+    ArrayList<IPRule> buf = this.decompositRule(rule);
+    ArrayList<IPRule> toDel = new ArrayList<IPRule>();
+    for(IPRule rbuf : buf) {
+      if(rbuf.equals(rule)) {
+        toDel.add(rbuf);
+      }
+    }
+    buf.removeAll(toDel);
+    
     return null;
   }
   
-  private ArrayList<IPRule> decompositRule(IPRuleIntersection inter, IPRule rule){
+  private boolean add(IPRule rule) {
+    if(!this.getProtocol().equals(rule.getProtocol())) return false;
+    
+    return true;
+  }
+  
+  private ArrayList<IPRule> decompositRule(IPRule inter){
     ArrayList<IPRule> res = new ArrayList<IPRule>();
     int number = 1;
-    for(InetPort srcPort : getRulesBySrcPort(rule, inter)) {
-      for(InetPort destPort : getRulesByDestPort(rule, inter)) {
-        for(IP4AddressInterval srcAddr : getRulesBySrcAddress(rule, inter)) {
-          for(IP4AddressInterval destAddr : getRulesByDestAddress(rule, inter)) {
-            for(Protocol protocol : getRulesByProtocol(rule, inter)) {
+    for(InetPort srcPort : getRulesBySrcPort(inter)) {
+      for(InetPort destPort : getRulesByDestPort(inter)) {
+        for(IP4AddressInterval srcAddr : getRulesBySrcAddress(inter)) {
+          for(IP4AddressInterval destAddr : getRulesByDestAddress(inter)) {
+            for(Protocol protocol : getRulesByProtocol(inter)) {
 //              IPRule rule = new IPRule();
-              IPRule ruleRes = rule.clone();
+              IPRule ruleRes = this.clone();
               ruleRes.setProtocol(protocol);
               ArrayList<IP4AddressInterval> dal = new ArrayList<IP4AddressInterval>();
               dal.add(destAddr);
@@ -518,7 +538,7 @@ public class IPRule extends Rule {
               spl.add(srcPort);
               ruleRes.setSrcPort(spl);
               
-              int n = Integer.parseInt((new Integer(rule.getNumber())).toString() + number++);
+              int n = Integer.parseInt((new Integer(this.getNumber())).toString() + number++);
               ruleRes.setNumber(n);
 //              ruleRes.setActivity(rule.getActivity());
 //              ruleRes.setLabel(rule.getLabel());
@@ -533,9 +553,9 @@ public class IPRule extends Rule {
     return res;
   }
   
-  private ArrayList<InetPort> getRulesBySrcPort(IPRule rule, IPRuleIntersection inter){
+  private ArrayList<InetPort> getRulesBySrcPort(IPRule inter){
     ArrayList<InetPort> res = new ArrayList<InetPort>();
-    for(InetPort port : rule.getSrcPort()){
+    for(InetPort port : this.getSrcPort()){
       for (InetPort interPort : inter.getSrcPort()) {
         res.addAll(port.decomposit(interPort));
       }
@@ -543,9 +563,9 @@ public class IPRule extends Rule {
     return res;
   }
 
-  private ArrayList<InetPort> getRulesByDestPort(IPRule rule, IPRuleIntersection inter){
+  private ArrayList<InetPort> getRulesByDestPort(IPRule inter){
     ArrayList<InetPort> res = new ArrayList<InetPort>();
-    for(InetPort port : rule.getDestPort()){
+    for(InetPort port : this.getDestPort()){
       for (InetPort interPort : inter.getDestPort()) {
         res.addAll(port.decomposit(interPort));
       }
@@ -553,9 +573,9 @@ public class IPRule extends Rule {
     return res;
   }
   
-  private ArrayList<IP4AddressInterval> getRulesBySrcAddress(IPRule rule, IPRuleIntersection inter) {
+  private ArrayList<IP4AddressInterval> getRulesBySrcAddress(IPRule inter) {
     ArrayList<IP4AddressInterval> res = new ArrayList<IP4AddressInterval>();
-    for(IP4AddressInterval ruleIpAddr : rule.getSrcAddress()){
+    for(IP4AddressInterval ruleIpAddr : this.getSrcAddress()){
       for(IP4AddressInterval interIpAddr : inter.getSrcAddress()){
         res.addAll(ruleIpAddr.decomposit(interIpAddr));
       }
@@ -563,9 +583,9 @@ public class IPRule extends Rule {
     return res;
   }
   
-  private ArrayList<IP4AddressInterval> getRulesByDestAddress(IPRule rule, IPRuleIntersection inter) {
+  private ArrayList<IP4AddressInterval> getRulesByDestAddress(IPRule inter) {
     ArrayList<IP4AddressInterval> res = new ArrayList<IP4AddressInterval>();
-    for(IP4AddressInterval ruleIpAddr : rule.getDestAddress()){
+    for(IP4AddressInterval ruleIpAddr : this.getDestAddress()){
       for(IP4AddressInterval interIpAddr : inter.getDestAddress()){
         res.addAll(ruleIpAddr.decomposit(interIpAddr));
       }
@@ -573,7 +593,7 @@ public class IPRule extends Rule {
     return res;
   }
   
-  private ArrayList<Protocol> getRulesByProtocol(IPRule rule, IPRuleIntersection inter) {
+  private ArrayList<Protocol> getRulesByProtocol(IPRule inter) {
     ArrayList<Protocol> res = new ArrayList<Protocol>();
     res.add(inter.getProtocol());
     return res;
