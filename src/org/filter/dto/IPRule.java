@@ -26,6 +26,7 @@ public class IPRule extends Rule {
 	private ArrayList<IP4AddressInterval> destAddress;
 	private ArrayList<InetPort> destPort;
 	
+	/*
 	//TODO: старшинство?
 	private String priority;
 	private String flags_TOS;
@@ -33,6 +34,8 @@ public class IPRule extends Rule {
 	private String length;
 	private String ttl;
 	private String icmp_code;
+	*/
+	private String infoBuf;
 	private Activity activity;
 	private String comment;
 	
@@ -52,55 +55,15 @@ public class IPRule extends Rule {
 		this.out = out;
 	}
 
-	public String getPriority() {
-		return priority;
-	}
+	public String getInfoBuf() {
+    return infoBuf;
+  }
 
-	public void setPriority(String priority) {
-		this.priority = priority;
-	}
+  public void setInfoBuf(String infoBuf) {
+    this.infoBuf = infoBuf;
+  }
 
-	public String getFlags_TOS() {
-		return flags_TOS;
-	}
-
-	public void setFlags_TOS(String flags_TOS) {
-		this.flags_TOS = flags_TOS;
-	}
-
-	public String getFragmentation() {
-		return fragmentation;
-	}
-
-	public void setFragmentation(String fragmentation) {
-		this.fragmentation = fragmentation;
-	}
-
-	public String getLength() {
-		return length;
-	}
-
-	public void setLength(String length) {
-		this.length = length;
-	}
-
-	public String getTtl() {
-		return ttl;
-	}
-
-	public void setTtl(String ttl) {
-		this.ttl = ttl;
-	}
-
-	public String getIcmp_code() {
-		return icmp_code;
-	}
-
-	public void setIcmp_code(String icmp_code) {
-		this.icmp_code = icmp_code;
-	}
-
-	public Activity getActivity() {
+  public Activity getActivity() {
 		return activity;
 	}
 
@@ -239,6 +202,7 @@ public class IPRule extends Rule {
 		}
 		rule.setProtocol(p);
 		Activity a;
+		StringBuilder sb = new StringBuilder();
 		switch(p){
 		case ICMP:
 			//TODO:
@@ -266,11 +230,17 @@ public class IPRule extends Rule {
 			rule.setSrcPort(strToPort(params[9]));
 			rule.setDestAddress(strToAddress(params[10]));
 			rule.setDestPort(strToPort(params[11]));
+			/*
 			rule.setPriority(params[12]);
 			rule.setFlags_TOS(params[13]);
 			rule.setFragmentation(params[14]);
 			rule.setTtl(params[15]);
-			rule.setIcmp_code(params[16]);
+			rule.setIcmp_code(params[16]);*/
+			for(int i = 12; i < 17; i++){
+			  sb.append(params[i]).append(":");
+			}
+			sb.append(params[17]);
+			rule.setInfoBuf(sb.toString());
 			a = Activity.getByLabel(params[18]);
 			if(a == null){
 				log = rule.getMessage() + ": invalid activity " + params[18];
@@ -284,11 +254,17 @@ public class IPRule extends Rule {
 			rule.setSrcPort(strToPort(params[9]));
 			rule.setDestAddress(strToAddress(params[10]));
 			rule.setDestPort(strToPort(params[11]));
+			/*
 			rule.setPriority(params[12]);
 			rule.setFlags_TOS(params[13]);
 			rule.setFragmentation(params[14]);
 			rule.setTtl(params[15]);
-			rule.setIcmp_code(params[16]);
+			rule.setIcmp_code(params[16]); */
+      for(int i = 12; i < 16; i++){
+        sb.append(params[i]).append(":");
+      }
+      sb.append(params[16]);
+      rule.setInfoBuf(sb.toString());
 			a = Activity.getByLabel(params[17]);
 			if(a == null){
 				log = rule.getMessage() + ": invalid activity " + params[17];
@@ -382,17 +358,15 @@ public class IPRule extends Rule {
 	  case TCP:
 	    sb.append(PortListToString(getSrcPort())).append(":");
 	    sb.append(AddressListToString(getDestAddress())).append(":").append(PortListToString(getDestPort())).append(":");
-	    sb.append(getPriority()).append(":").append(getFlags_TOS()).append(":").append(getFragmentation()).append(":").append(getTtl()).append(":");
-	    sb.append(getIcmp_code()).append(":").append("any").append(":").append(getActivity()).append(":").append(getComment());
+	    sb.append(getInfoBuf()).append(":").append(getActivity()).append(":").append(getComment());
 	    break;
 	  case UDP:
 	    sb.append(PortListToString(getSrcPort())).append(":");
 	    sb.append(AddressListToString(getDestAddress())).append(":").append(PortListToString(getDestPort())).append(":");
-	    sb.append(getPriority()).append(":").append(getFlags_TOS()).append(":").append(getFragmentation()).append(":").append(getTtl()).append(":");
-      sb.append(getIcmp_code()).append(":");
+	    sb.append(getInfoBuf()).append(":").append(getActivity()).append(":").append(getComment());
 	    break;
 	  case ICMP:
-	    sb.append(AddressListToString(getDestAddress())).append(":");
+	    //sb.append(AddressListToString(getDestAddress())).append(":");
 	    break;
 	  }
 	  return sb.toString();
@@ -467,16 +441,18 @@ public class IPRule extends Rule {
 	  rule.setSrcAddress(this.getSrcAddress());
 	  rule.setSrcPort(this.getSrcPort());	  
 	  rule.setComment(this.getComment());
+	  /*
 	  rule.setFlags_TOS(rule.getFlags_TOS());
 	  rule.setFragmentation(this.getFragmentation());
 	  rule.setIcmp_code(this.getIcmp_code());
-	  rule.setIn(this.getIn());
 	  rule.setLength(this.getLength());
-	  rule.setOut(this.getOut());
 	  rule.setPriority(this.getPriority());
+	  rule.setTtl(this.getTtl());*/
+	  rule.setInfoBuf(this.getInfoBuf());
+	  rule.setIn(this.getIn());
+	  rule.setOut(this.getOut());
 	  rule.setRuleLog(this.getRuleLog());
 	  rule.setTimeInterval(this.getTimeInterval());
-	  rule.setTtl(this.getTtl());
 	  return rule;
 	}
 	
