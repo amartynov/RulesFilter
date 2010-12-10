@@ -171,8 +171,12 @@ public class InetPort {
         return true;
       }
     } else {
-      if(inetPort.getlPort().equals(this.lPort) && inetPort.getrPort().equals(this.rPort)){
-        return true;
+      if(inetPort.getlPort() == null || this.lPort == null) return false;
+      if(inetPort.getlPort().equals(this.lPort)) {
+        if(inetPort.getrPort() == null || this.rPort == null) return false;
+        if(inetPort.getrPort().equals(this.rPort)) {
+          return true;
+        }
       }
     }
     return false;
@@ -186,6 +190,46 @@ public class InetPort {
       sb.append(lPort).append('-').append(rPort);
     }
     return sb.toString();
+  }
+
+  public void add(InetPort p2) {
+    if(p2.port == null) {
+      if(this.port == null) {
+        if(this.lPort < p2.getlPort()) {
+          this.rPort = p2.getrPort();
+        } else {
+          this.lPort = p2.getlPort();
+        }
+      } else {
+        if(this.port < p2.getlPort()) {
+          this.lPort = this.port;
+          this.rPort = p2.getrPort();
+          this.port = null;
+        } else {
+          this.rPort = this.port;
+          this.lPort = p2.getlPort();
+          this.port = null;
+        }
+      }
+    } else {
+      if(this.port == null) {
+        if(this.lPort > p2.getPort()) {
+          this.lPort = p2.getPort();
+        } else {
+          this.rPort = p2.getPort();
+        }
+      } else {
+        if(this.port < p2.getPort()) {
+          this.lPort = this.port;
+          this.rPort = p2.getPort();
+          this.port = null;
+        } else {
+          this.rPort = this.port;
+          this.lPort = p2.getPort();
+          this.port = null;
+        }
+      }
+    }
   }
 	
 	/* RFC 1700 (October 1994)

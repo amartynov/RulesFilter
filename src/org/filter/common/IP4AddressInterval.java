@@ -76,7 +76,6 @@ public class IP4AddressInterval {
   }
   
   public static IP4AddressInterval intersection(IP4AddressInterval ip1, IP4AddressInterval ip2){
-    //TODO
     IP4AddressInterval res = null;
     if(ip1.getRaddr() != null && ip2.getRaddr() != null) {
       ArrayList<Long> list = Utils.intesection(ip1.getLaddr(), ip1.getRaddr(), ip2.getLaddr(), ip2.getRaddr());
@@ -133,7 +132,15 @@ public class IP4AddressInterval {
     
     
     if(this.raddr != null){
-      long rbuf = this.raddr.longValue();
+      la.append(getByte(this.laddr, 0));
+      ra.append(getByte(this.raddr, 0));
+      for(int i = 1; i < 4; i++){
+        la.append(".").append(getByte(this.laddr, i));
+        ra.append(".").append(getByte(this.raddr, i));
+      }
+      la.append("-").append(ra.toString());
+      
+      /*long rbuf = this.raddr.longValue();
       long mask = 1;
       for(int i = 0; i < 32; i++){
         if((lbuf & mask) != 0) break;
@@ -159,7 +166,7 @@ public class IP4AddressInterval {
           ra.append(".").append(getByte(this.raddr, i));
         }
         la.append("-").append(ra.toString());
-      }
+      }*/
     } else {
       la.append(getByte(this.laddr, 0));
       for(int i = 1; i < 4; i++){
@@ -180,6 +187,11 @@ public class IP4AddressInterval {
   
   public boolean sum(IP4AddressInterval addr) {
     return true;
+  }
+  
+  public IP4AddressInterval sub(IP4AddressInterval rule) {
+    
+    return null;
   }
   
 }

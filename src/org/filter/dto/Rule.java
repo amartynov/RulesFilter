@@ -2,7 +2,7 @@ package org.filter.dto;
 
 import org.filter.RuleAction;
 
-public abstract class Rule {
+public class Rule {
 	
 	private String label;
 	private int number;
@@ -44,6 +44,12 @@ public abstract class Rule {
 
   public void setRuleLog(String ruleLog) {
     this.ruleLog = ruleLog;
+  }
+  
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(label).append(":").append(number).append(":").append(ruleAction.getLabel()).append(":").append(ruleLog);
+    return sb.toString();
   }
 
 }

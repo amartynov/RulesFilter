@@ -40,7 +40,7 @@ public class IPRuleCBMouseListener implements MouseListener{
 		  dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		  
 		  JLabel l = new JLabel(rule.toString());
-		  l.setBounds(0, 0, 200, 100);
+		  l.setBounds(0, 0, 400, 100);
 		  JButton button = new JButton("Ok");
 		  button.setBounds(140, 140, 55, 55);
 		  button.addActionListener(new ActionListener() {

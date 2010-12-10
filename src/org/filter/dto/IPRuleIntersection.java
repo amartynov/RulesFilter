@@ -18,4 +18,8 @@ public class IPRuleIntersection extends IPRule {
     this.rule2 = rule2;
   }
   
+  public String toString() {
+    return super.toString();
+  }
+  
 }

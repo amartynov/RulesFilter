@@ -24,9 +24,16 @@ public class ExportFileMenuItemListener implements ActionListener{
       FileOutputStream fos = null;
       try {
         fos = new FileOutputStream(oFile);
+        for(String str : IPRule.list1) {
+          fos.write((str + '\n').getBytes());
+        }
+        if(IPRule.globalIpRule != null) fos.write((IPRule.globalIpRule.toString() + '\n').getBytes());
         if(outputRulesList != null) {
           for(IPRule rule : outputRulesList)
             fos.write((rule.toString() + '\n').getBytes());
+        }
+        for(String str : IPRule.list2) {
+          fos.write((str + '\n').getBytes());
         }
         fos.close();
       } catch (IOException e1) {

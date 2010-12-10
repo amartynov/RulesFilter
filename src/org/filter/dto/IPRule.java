@@ -2,6 +2,7 @@ package org.filter.dto;
 
 import java.util.ArrayList;
 
+import org.filter.GraphicAxises;
 import org.filter.Protocol;
 import org.filter.RuleAction;
 import org.filter.common.Activity;
@@ -12,6 +13,9 @@ public class IPRule extends Rule {
 	//ip:12:accept:log:0:1:0:tcp:195.208.113.132/255.255.255.255:any:77.88.21.0/255.255.255.0:http:any:any:any:65535:0-255:any:active:yandex
 	
 	public static String log;
+	public static Rule globalIpRule = null;
+	public static ArrayList<String> list1 = new ArrayList<String>();
+	public static ArrayList<String> list2 = new ArrayList<String>();
 	
 	private String in;
 	private String out;
@@ -196,9 +200,12 @@ public class IPRule extends Rule {
 		String[] params = str.split(":");
 		if(!params[0].equals("ip")){
 			log = params[0] + " rule skiped";
+			if(globalIpRule == null) 	list1.add(str);
+			else list2.add(str);
 			return null;
 		}
 		IPRule rule = new IPRule();
+		rule.setLabel(params[0]);
 		rule.setNumber(Integer.parseInt(params[1]));
 		RuleAction ra = RuleAction.getByLabel(params[2]);
 		if(ra == null){
@@ -213,7 +220,11 @@ public class IPRule extends Rule {
 				log = "Invalid global ip rule";
 				return null;
 			}
-			//TODO:
+			globalIpRule = new Rule();
+			globalIpRule.setLabel(rule.getLabel());
+			globalIpRule.setNumber(rule.getNumber());
+			globalIpRule.setRuleAction(rule.getRuleAction());
+			globalIpRule.setRuleLog(rule.getRuleLog());
 			return null;
 //			return rule;
 		}
@@ -231,6 +242,7 @@ public class IPRule extends Rule {
 		switch(p){
 		case ICMP:
 			//TODO:
+		  list2.add(str);
 			return null;
 			/*rule.setSrcAddress(strToAddress(params[8]));
 //			rule.setSrcPort(strToPort(params[9]));
@@ -361,10 +373,28 @@ public class IPRule extends Rule {
 	
 	public String toString(){
 	  StringBuilder sb = new StringBuilder();
-	  sb.append("ip:").append(getNumber()).append(":").append(getRuleAction().getLabel()).append(":").append(getRuleLog()).append(":");
-	  sb.append(getIn()).append(":").append(getOut()).append(":").append(getTimeInterval()).append(":").append(getProtocol().getLabel()).append(":");
-	  sb.append(AddressListToString(getSrcAddress())).append(":").append(PortListToString(getSrcPort())).append(":");
-	  sb.append(AddressListToString(getDestAddress())).append(":").append(PortListToString(getDestPort())).append(":").append(getActivity());
+	  sb.append(super.toString());
+	  sb.append(":").append(getIn()).append(":").append(getOut()).append(":").append(getTimeInterval()).append(":");
+	  Protocol protocol = getProtocol();
+	  sb.append(protocol.getLabel()).append(":");
+	  sb.append(AddressListToString(getSrcAddress())).append(":");
+	  switch(protocol) {
+	  case TCP:
+	    sb.append(PortListToString(getSrcPort())).append(":");
+	    sb.append(AddressListToString(getDestAddress())).append(":").append(PortListToString(getDestPort())).append(":");
+	    sb.append(getPriority()).append(":").append(getFlags_TOS()).append(":").append(getFragmentation()).append(":").append(getTtl()).append(":");
+	    sb.append(getIcmp_code()).append(":").append("any").append(":").append(getActivity()).append(":").append(getComment());
+	    break;
+	  case UDP:
+	    sb.append(PortListToString(getSrcPort())).append(":");
+	    sb.append(AddressListToString(getDestAddress())).append(":").append(PortListToString(getDestPort())).append(":");
+	    sb.append(getPriority()).append(":").append(getFlags_TOS()).append(":").append(getFragmentation()).append(":").append(getTtl()).append(":");
+      sb.append(getIcmp_code()).append(":");
+	    break;
+	  case ICMP:
+	    sb.append(AddressListToString(getDestAddress())).append(":");
+	    break;
+	  }
 	  return sb.toString();
 	}
 	
@@ -495,7 +525,14 @@ public class IPRule extends Rule {
     return true;
   }
 
-  public ArrayList<IPRule> sub(IPRule rule) {
+  public IPRule subRule(IPRule rule) {
+    IPRule res = this.clone();
+    /*
+    res.setSrcAddress();
+    res.setSrcPort();
+    res.setDestAddress();
+    res.setDestPort();
+    res.setProtocol();
     ArrayList<IPRule> buf = this.decompositRule(rule);
     ArrayList<IPRule> toDel = new ArrayList<IPRule>();
     for(IPRule rbuf : buf) {
@@ -503,18 +540,79 @@ public class IPRule extends Rule {
         toDel.add(rbuf);
       }
     }
-    buf.removeAll(toDel);
+    buf.removeAll(toDel);*/
     
-    return null;
+    return res;
   }
   
-  private boolean add(IPRule rule) {
+  private boolean addRule(IPRule rule) {
     if(!this.getProtocol().equals(rule.getProtocol())) return false;
+    int noteq = 0;
+    GraphicAxises flag = GraphicAxises.srcIP;
+    if(!AddressEquals(this.getSrcAddress(), rule.getSrcAddress())) {
+      noteq++;
+    } 
+    
+    if(!AddressEquals(this.getDestAddress(), rule.getDestAddress())) {
+      noteq++;
+      flag = GraphicAxises.destIP;
+    } 
+    
+    if(!PortEquals(this.getSrcPort(), rule.getSrcPort())) {
+      noteq++;
+      flag = GraphicAxises.srcPort;
+    } 
+    
+    if(!PortEquals(this.getDestPort(), rule.getDestPort())) {
+      noteq++;
+      flag = GraphicAxises.destPort;
+    } 
+    
+    if(noteq != 1) return false;
+    switch(flag) {
+    case srcIP:
+      addSrcAddr(rule.getSrcAddress());
+      break;
+    case destIP:
+      addDestAddr(rule.getDestAddress());
+      break;
+    case srcPort:
+      addSrcPort(rule.getSrcPort());
+      break;
+    case destPort:
+      addDestPort(rule.getDestPort());
+      break;
+    }
     
     return true;
   }
   
-  private ArrayList<IPRule> decompositRule(IPRule inter){
+  private void addDestPort(ArrayList<InetPort> destPort) {
+    ArrayList<InetPort> buf = new ArrayList<InetPort>();
+    for(InetPort p1 : this.getDestPort()) {
+      for(InetPort p2 : destPort) {
+        p1.add(p2);
+      }
+    }
+    
+  }
+
+  private void addSrcPort(ArrayList<InetPort> srcPort2) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  private void addDestAddr(ArrayList<IP4AddressInterval> destAddress2) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  private void addSrcAddr(ArrayList<IP4AddressInterval> srcAddress2) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public ArrayList<IPRule> decompositRule(IPRule inter){
     ArrayList<IPRule> res = new ArrayList<IPRule>();
     int number = 1;
     for(InetPort srcPort : getRulesBySrcPort(inter)) {
@@ -596,6 +694,32 @@ public class IPRule extends Rule {
   private ArrayList<Protocol> getRulesByProtocol(IPRule inter) {
     ArrayList<Protocol> res = new ArrayList<Protocol>();
     res.add(inter.getProtocol());
+    return res;
+  }
+
+  public boolean decideAnomaly(IPRule rule, IPRuleIntersection inter) {
+    if(this.equals(inter)) {
+      this.setSrcAddress(rule.getSrcAddress());
+      this.setSrcPort(rule.getSrcPort());
+      this.setDestAddress(rule.getDestAddress());
+      this.setDestPort(rule.getDestPort());
+      return true;
+    }
+    if(rule.equals(inter)) {
+      return true;
+    }
+    
+    
+    return false;
+  }
+  
+  private int notNullItems() {
+    int res = 0;
+    if(srcAddress != null) res++;
+    if(srcPort != null) res++;
+    if(destAddress != null) res++;
+    if(destPort != null) res++;
+    if(protocol != null) res++;
     return res;
   }
   

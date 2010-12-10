@@ -212,6 +212,8 @@ public class Filter {
 					openedFile = jfc.getSelectedFile();
 					inputIpRules = getIPRules(openedFile);
 					if(inputIpRules != null) {
+					  IPRule.list1.clear();
+					  IPRule.list2.clear();
 						logTA.append(labels.getLogImportIP() + " " + inputIpRules.size() + "\n");
 						outputIpRules.clear();
 						inputGraphic.clear();
@@ -223,7 +225,7 @@ public class Filter {
 //						intersection = getRulesIntersectionList(inputIpRules);
 //						inputGraphic.setIntersectionRules(intersection);
 						intersection = inputGraphic.getIntersectionRules();
-						start.addActionListener(new StartMenuItemListener(outputIpRules, intersection, outputPanel, exportFileItem));
+						start.addActionListener(new StartMenuItemListener(outputIpRules, inputIpRules, outputPanel, exportFileItem));
 						start.setEnabled(true);
 					} 
 				}
@@ -285,18 +287,6 @@ public class Filter {
         br.close();
       } catch (IOException e) {
         e.printStackTrace();
-      }
-    }
-    return res;
-  }
-	
-	private ArrayList<IPRuleIntersection> getRulesIntersectionList(ArrayList<IPRule> inputIpRules) {
-	  ArrayList<IPRuleIntersection> res = new ArrayList<IPRuleIntersection>();
-	  for (int i = 0; i < inputIpRules.size() - 1; i++){
-      IPRule irule = inputIpRules.get(i);
-      for(int j = i + 1; j < inputIpRules.size(); j++){
-        IPRuleIntersection inter = irule.intersection(inputIpRules.get(j));
-        res.add(inter);
       }
     }
     return res;
