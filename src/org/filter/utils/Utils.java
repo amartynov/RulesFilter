@@ -12,7 +12,7 @@ public class Utils {
    * @param end2 - конец второго отрезка
    * @return начало и конец отрезка, либо координату точки, либо пустой список
    */
-  public static ArrayList<Long> intesection(long start1, long end1, long start2, long end2) {
+  public static ArrayList<Long> intersection(long start1, long end1, long start2, long end2) {
     //TODO: test
     ArrayList<Long> res = null;
     long maxStart = start1 < start2 ? start2 : start1;

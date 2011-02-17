@@ -29,7 +29,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 import org.filter.dto.IPRule;
-import org.filter.dto.IPRuleIntersection;
 import org.filter.language.LabelList;
 import org.filter.language.LanguageFactory;
 import org.filter.listeners.AboutMenuItemListener;
@@ -66,9 +65,9 @@ public class Filter {
 	
 	private final JFrame jfrm = new JFrame(labels.getProgName());
 	private JMenuItem start;
-	private final JTextArea logTA = new JTextArea();
+	private final static JTextArea logTA = new JTextArea();
 	
-	private ArrayList<IPRuleIntersection> intersection;
+//	private ArrayList<IPRuleIntersection> intersection;
 	
 	public Filter() {
 //		JFrame jfrm = new JFrame("Filter");
@@ -218,13 +217,10 @@ public class Filter {
 						outputIpRules.clear();
 						inputGraphic.clear();
 						outputGraphic.clear();
-//						((CheckBoxPanel)outputPanel.getComponent(0)).cl;
 						((CheckBoxPanel)inputPanel.getComponent(0)).setRules(inputIpRules);
 						inputGraphic.repaint();
 						outputGraphic.repaint();
-//						intersection = getRulesIntersectionList(inputIpRules);
-//						inputGraphic.setIntersectionRules(intersection);
-						intersection = inputGraphic.getIntersectionRules();
+//						intersection = inputGraphic.getIntersectionRules();
 						start.addActionListener(new StartMenuItemListener(outputIpRules, inputIpRules, outputPanel, exportFileItem));
 						start.setEnabled(true);
 					} 

@@ -192,44 +192,59 @@ public class InetPort {
     return sb.toString();
   }
 
-  public void add(InetPort p2) {
-    if(p2.port == null) {
+  public boolean add(InetPort p2) {
+    //TODO:
+    if(p2.getPort() == null) {
       if(this.port == null) {
         if(this.lPort < p2.getlPort()) {
-          this.rPort = p2.getrPort();
+          if(Math.abs(this.rPort - p2.getlPort()) == 1) {
+            this.rPort = p2.getrPort();
+            return true;
+          }
         } else {
-          this.lPort = p2.getlPort();
+          if(Math.abs(this.lPort - p2.getrPort()) == 1) {
+            this.lPort = p2.getlPort();
+            return true;
+          }
         }
       } else {
-        if(this.port < p2.getlPort()) {
+        if(Math.abs(this.port - p2.getlPort()) == 1) {
           this.lPort = this.port;
           this.rPort = p2.getrPort();
           this.port = null;
+          return true;
         } else {
-          this.rPort = this.port;
-          this.lPort = p2.getlPort();
-          this.port = null;
+          if(Math.abs(this.port - p2.getrPort()) == 1) {
+            this.rPort = this.port;
+            this.lPort = p2.getlPort();
+            this.port = null;
+            return true;
+          }
         }
       }
     } else {
       if(this.port == null) {
-        if(this.lPort > p2.getPort()) {
+        if(Math.abs(this.lPort - p2.getPort()) == 1) {
           this.lPort = p2.getPort();
         } else {
           this.rPort = p2.getPort();
         }
       } else {
-        if(this.port < p2.getPort()) {
+        if(Math.abs(this.lPort - p2.getPort()) == 1) {
           this.lPort = this.port;
           this.rPort = p2.getPort();
           this.port = null;
+          return true;
         } else {
-          this.rPort = this.port;
-          this.lPort = p2.getPort();
-          this.port = null;
+          if(Math.abs(this.port - p2.getrPort()) == 1) {
+            this.rPort = this.port;
+            this.lPort = p2.getPort();
+            this.port = null;            
+          }
         }
       }
     }
+    return false;
   }
 	
 	/* RFC 1700 (October 1994)

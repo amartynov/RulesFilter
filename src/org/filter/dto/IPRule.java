@@ -521,7 +521,7 @@ public class IPRule extends Rule {
     return res;
   }
   
-  private boolean addRule(IPRule rule) {
+  public boolean addRule(IPRule rule) {
     if(!this.getProtocol().equals(rule.getProtocol())) return false;
     int noteq = 0;
     GraphicAxises flag = GraphicAxises.srcIP;
@@ -547,45 +547,64 @@ public class IPRule extends Rule {
     if(noteq != 1) return false;
     switch(flag) {
     case srcIP:
-      addSrcAddr(rule.getSrcAddress());
-      break;
+      return addSrcAddr(rule.getSrcAddress());
     case destIP:
-      addDestAddr(rule.getDestAddress());
-      break;
+      return addDestAddr(rule.getDestAddress());
     case srcPort:
-      addSrcPort(rule.getSrcPort());
-      break;
+      return addSrcPort(rule.getSrcPort());
     case destPort:
-      addDestPort(rule.getDestPort());
-      break;
+      return addDestPort(rule.getDestPort());
     }
-    
-    return true;
+    return false;
   }
   
-  private void addDestPort(ArrayList<InetPort> destPort) {
-    ArrayList<InetPort> buf = new ArrayList<InetPort>();
+  private boolean addDestPort(ArrayList<InetPort> destPort) {
+    /*ArrayList<InetPort> buf = new ArrayList<InetPort>();
     for(InetPort p1 : this.getDestPort()) {
       for(InetPort p2 : destPort) {
         p1.add(p2);
       }
+    }*/
+    return false;
+  }
+
+  private boolean addSrcPort(ArrayList<InetPort> srcPort2) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  private boolean addDestAddr(ArrayList<IP4AddressInterval> destAddress) {
+    ArrayList<IP4AddressInterval> toInsert = new ArrayList<IP4AddressInterval>();
+    ADDR:
+    for(IP4AddressInterval ip1 : this.destAddress) {
+      if(destAddress.size() == 0) break;
+      for(IP4AddressInterval ip2 : destAddress) {
+        if(!ip1.add(ip2)) {
+          toInsert.add(ip2);
+        } 
+        destAddress.remove(ip2);
+        continue ADDR;
+      }
     }
-    
+    this.destAddress.addAll(toInsert);
+    return true;
   }
 
-  private void addSrcPort(ArrayList<InetPort> srcPort2) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  private void addDestAddr(ArrayList<IP4AddressInterval> destAddress2) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  private void addSrcAddr(ArrayList<IP4AddressInterval> srcAddress2) {
-    // TODO Auto-generated method stub
-    
+  private boolean addSrcAddr(ArrayList<IP4AddressInterval> srcAddress) {
+    ArrayList<IP4AddressInterval> toInsert = new ArrayList<IP4AddressInterval>();
+    ADDR:
+    for(IP4AddressInterval ip1 : this.srcAddress) {
+      if(srcAddress.size() == 0) break;
+      for(IP4AddressInterval ip2 : srcAddress) {
+        if(!ip1.add(ip2)) {
+          toInsert.add(ip2);
+        } 
+        srcAddress.remove(ip2);
+        continue ADDR;
+      }
+    }
+    this.srcAddress.addAll(toInsert);
+    return true;
   }
 
   public ArrayList<IPRule> decompositRule(IPRule inter){
@@ -596,7 +615,6 @@ public class IPRule extends Rule {
         for(IP4AddressInterval srcAddr : getRulesBySrcAddress(inter)) {
           for(IP4AddressInterval destAddr : getRulesByDestAddress(inter)) {
             for(Protocol protocol : getRulesByProtocol(inter)) {
-//              IPRule rule = new IPRule();
               IPRule ruleRes = this.clone();
               ruleRes.setProtocol(protocol);
               ArrayList<IP4AddressInterval> dal = new ArrayList<IP4AddressInterval>();
@@ -614,9 +632,6 @@ public class IPRule extends Rule {
               
               int n = Integer.parseInt((new Integer(this.getNumber())).toString() + number++);
               ruleRes.setNumber(n);
-//              ruleRes.setActivity(rule.getActivity());
-//              ruleRes.setLabel(rule.getLabel());
-              
               res.add(ruleRes);
             }
           }

@@ -48,65 +48,57 @@ public class StartMenuItemListener implements ActionListener {
                 toInsert.add(rule);
               }
             }
-            /*
-            //тут надо расскладывать оба правила
-            ArrayList<IPRule> obuf = orule.decompositRule(inter);
-            ArrayList<IPRule> ibuf = bufRule.decompositRule(inter);
-            toDelete.add(bufRule);
-            rRule:
-            for(IPRule r : obuf) {
-              for(IPRule rb : ibuf) {
-                if(rb.equals(r)) {
-                  ibuf.remove(rb);
-                  continue rRule;
-                }
-                  //if(!toInsert.contains(rb)) toInsert.add(rb);                
-              }
-            }
-            toInsert.addAll(ibuf);
-            /*
-            if(bufRule.getRuleAction() == orule.getRuleAction()) {
-              //if rules are intersected and actions are equals
-              if(!orule.decideAnomaly(bufRule, inter)) {
-                toInsert.addAll(bufRule.decompositRule(inter));
-              }
-            } else {
-              
-            }*/
           }
         }
         if(!toDelete.isEmpty()) buf.removeAll(toDelete);
         toDelete.clear();
-        if(!toInsert.isEmpty()) {
-          for(IPRule r : toInsert) {
-            if(orule.intersection(r).isEmpty()) {
-            //if(!orule.equals(r)) {
-              buf.add(r);              
+        if(!toInsert.isEmpty()) buf.addAll(toInsert); 
+        /*{
+          int kol = toInsert.size();
+          iRule:
+          for(int i = 0; i < kol - 1; i++) {
+            for(int j = i + 1; j < kol; j++) {
+              if(toInsert.get(i).addRule(toInsert.get(j))) {
+                toInsert.remove(toInsert.get(j));
+                kol--;
+                i--;
+                continue iRule;
+              }
             }
           }
-        }
+          buf.addAll(toInsert);
+        }*/
         toInsert.clear();
       }
-      toDelete.clear();
-      toInsert.clear();
-      for(IPRule or : outputRulesList) {
-        for(IPRule r : buf) {
-          if(or.intersection(r).isEmpty())
-            if(!toInsert.contains(r)) toInsert.add(r);
-        }        
-      }
-      outputRulesList.addAll(toInsert);
+      outputRulesList.addAll(buf);
       buf.clear();
       toInsert.clear();
-      /*
-      if(!rule.isEmpty()){
-        outputRulesList.addAll(decompositRuleByIntersection(rule));      
-      } else {
-        if(!outputRulesList.contains(rule.getRule1())){
-          outputRulesList.add(rule.getRule1());
-        }
-      }*/
     }
+    
+    if(IPRule.globalIpRule != null) {
+      for(IPRule r : outputRulesList) {
+        if(r.getRuleAction() == IPRule.globalIpRule.getRuleAction()) {
+          toDelete.add(r);
+        }
+      }
+      outputRulesList.removeAll(toDelete);
+    }
+    
+    int kol = outputRulesList.size();
+    iRule:
+    for(int i = 0; i < kol - 1; i++) {
+      for(int j = i + 1; j < kol; j++) {
+        if(outputRulesList.get(i).getRuleAction() == outputRulesList.get(j).getRuleAction()) {
+          if(outputRulesList.get(i).addRule(outputRulesList.get(j))) {
+            outputRulesList.remove(outputRulesList.get(j));
+            kol--;
+            i--;
+            continue iRule;
+          }          
+        }
+      }
+    }
+    
     ((CheckBoxPanel)outputPanel.getComponent(0)).setRules(outputRulesList);
     for(ActionListener al : export.getActionListeners()) {
       if(al instanceof ExportFileMenuItemListener){

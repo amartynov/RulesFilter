@@ -78,9 +78,9 @@ public class IP4AddressInterval {
   public static IP4AddressInterval intersection(IP4AddressInterval ip1, IP4AddressInterval ip2){
     IP4AddressInterval res = null;
     if(ip1.getRaddr() != null && ip2.getRaddr() != null) {
-      ArrayList<Long> list = Utils.intesection(ip1.getLaddr(), ip1.getRaddr(), ip2.getLaddr(), ip2.getRaddr());
+      ArrayList<Long> list = Utils.intersection(ip1.getLaddr(), ip1.getRaddr(), ip2.getLaddr(), ip2.getRaddr());
       if(list == null) return null;
-      res = new IP4AddressInterval(list.get(0), list.get(1));
+      res = list.size() == 1 ? new IP4AddressInterval(list.get(0), null) : new IP4AddressInterval(list.get(0), list.get(1));
     } else if(ip1.getRaddr() != null) {
       Long p = Utils.intersection(ip1.getLaddr(), ip1.getRaddr(), ip2.getLaddr());
       if(p == null) return null;
@@ -185,13 +185,75 @@ public class IP4AddressInterval {
     return (int)buf;
   }
   
-  public boolean sum(IP4AddressInterval addr) {
-    return true;
-  }
-  
-  public IP4AddressInterval sub(IP4AddressInterval rule) {
-    
-    return null;
+  public boolean add(IP4AddressInterval addr) {
+    if(this.raddr == null && addr.getRaddr() == null) {
+      if(this.laddr.equals(addr.getLaddr())) {
+        return true;
+      } else if(Math.abs(this.laddr - addr.getLaddr()) == 1) {
+        if(this.laddr < addr.getLaddr()) {
+          this.raddr = addr.getLaddr();
+        } else {
+          this.raddr = this.laddr;
+          this.laddr = addr.getLaddr();
+        }
+        return true;
+      }
+    } else {
+      if (this.raddr == null) {
+        if (Utils.intersection(addr.getLaddr(), addr.getRaddr(), this.laddr) != null) {
+          this.laddr = addr.getLaddr();
+          this.raddr = addr.getRaddr();
+          return true;
+        } else if (Math.abs(addr.getLaddr() - this.laddr) == 1) {
+          if (this.laddr > addr.getLaddr()) {
+            this.laddr = addr.getLaddr();
+          }
+          this.raddr = addr.getRaddr();
+          return true;
+        } else if (Math.abs(addr.getRaddr() - this.laddr) == 1) {
+          this.raddr = addr.getRaddr() < this.laddr ? this.laddr : addr.getRaddr();
+          this.laddr = addr.getLaddr();
+          return true;
+        }
+      } else if (addr.getRaddr() == null) {
+        if (Utils.intersection(this.laddr, this.raddr, addr.getLaddr()) != null) {
+          return true;
+        } else if (Math.abs(addr.getLaddr() - this.laddr) == 1) {
+          if (this.laddr > addr.getLaddr()) {
+            this.laddr = addr.getLaddr();
+          }
+          return true;
+        } else if (Math.abs(addr.getLaddr() - this.raddr) == 1) {
+          this.raddr = addr.getLaddr() < this.raddr ? this.raddr : addr.getLaddr();
+          return true;
+        }
+      } else {
+        if (Utils.intersection(this.laddr, this.raddr, addr.getLaddr(), addr.getRaddr()) != null) {
+          if(this.laddr < addr.getLaddr()) {
+            if(this.raddr < addr.getRaddr()) {
+              this.raddr = addr.getRaddr();
+            }
+          } else {
+            this.laddr = addr.getLaddr();
+            if(this.raddr < addr.getRaddr()) {
+              this.raddr = addr.getRaddr();
+            }
+          }
+          return true;
+        } else if(this.laddr < addr.getLaddr()) {
+          if(addr.getLaddr() - this.raddr == 1) {
+            this.raddr = addr.getRaddr();
+            return true;
+          }
+        } else {
+          if(this.laddr - addr.getRaddr() == 1) {
+            this.laddr = addr.getLaddr();
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
   
 }
