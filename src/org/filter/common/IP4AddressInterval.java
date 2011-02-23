@@ -3,6 +3,7 @@ package org.filter.common;
 import java.util.ArrayList;
 
 import org.filter.dto.LineProjection;
+import org.filter.exeption.FilterExeption;
 import org.filter.utils.Utils;
 
 public class IP4AddressInterval {
@@ -17,7 +18,8 @@ public class IP4AddressInterval {
     raddr = r;
   }
   
-  public IP4AddressInterval(String addr) {
+  public IP4AddressInterval(String addr) throws FilterExeption {
+    if(addr.trim().isEmpty()) throw new FilterExeption();
     String[] buf = addr.split("-");
     if(buf.length != 2) {
       buf = addr.split("/");
@@ -62,6 +64,28 @@ public class IP4AddressInterval {
       length = ((double)(raddr - laddr)) / maxIpAddress; 
     }
     return new LineProjection(start, length);
+  }
+  
+  public static boolean validate(String str) {
+    String[] buf = str.split("-");
+    if(buf.length != 2) {
+      buf = str.split("/");
+      try {
+        Utils.strToLong(buf[1]);
+        Utils.strToLong(buf[0]);        
+      } catch (FilterExeption e) {
+        return false;
+      }
+     
+    } else {
+      try {
+        Utils.strToLong(buf[0]);
+        Utils.strToLong(buf[1]);        
+      } catch (FilterExeption e) {
+        return false;
+      }
+    }
+    return true;
   }
   
   public static ArrayList<IP4AddressInterval> intersection(ArrayList<IP4AddressInterval> list1, ArrayList<IP4AddressInterval> list2) {
@@ -254,6 +278,10 @@ public class IP4AddressInterval {
       }
     }
     return false;
+  }
+  
+  public IP4AddressInterval clone() {
+    return new IP4AddressInterval(new Long(this.laddr.longValue()), this.raddr == null ? null : new Long(this.raddr.longValue()));
   }
   
 }

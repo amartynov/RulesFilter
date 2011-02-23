@@ -99,13 +99,17 @@ public class GraphicPanel extends JPanel{
 		if(rulesJCB != null) {
 			if(rects.size() == 0){
 				for(IPRuleJCheckBox r : rulesJCB){
-				  IPRule rule = r.getRule();
-				  if(rule.getActivity() == Activity.active){
-				    rects.addAll(getRuleRects(rule, null));
+				  if(r.isEnabled()) {
+				    IPRule rule = r.getRule();
+				    if(rule.getActivity() == Activity.active){
+				      rects.addAll(getRuleRects(rule, null));
+				    }				    
 				  }
 				}
 			}
+			
 			if(intersectionsRects.size() == 0){
+			  intersectionRules = getRulesIntersectionList(rulesJCB);
 			  if(intersectionRules != null) {
 			    for(IPRuleIntersection r : intersectionRules) {
 			      if(r.getRule1().getActivity() == Activity.active && r.getRule2().getActivity() == Activity.active){
@@ -151,8 +155,13 @@ public class GraphicPanel extends JPanel{
 
 	public void setRulesJCB(ArrayList<IPRuleJCheckBox> rulesJCB) {
 		this.rulesJCB = rulesJCB;
-		clearRects();
-		paintComponent(this.getGraphics());
+		newPaint();
+	}
+	
+	public void newPaint() {
+	  this.intersectionRules = getRulesIntersectionList(rulesJCB);
+    clearRects();
+    paintComponent(this.getGraphics());
 	}
 
 	public GraphicAxises getxAxis() {
@@ -254,5 +263,22 @@ public class GraphicPanel extends JPanel{
 		rects.clear();
 		intersectionsRects.clear();
 	}
+	
+	private ArrayList<IPRuleIntersection> getRulesIntersectionList(ArrayList<IPRuleJCheckBox> inputIpRules) {
+    ArrayList<IPRuleIntersection> res = new ArrayList<IPRuleIntersection>();
+    for (int i = 0; i < inputIpRules.size() - 1; i++) {
+      if(!inputIpRules.get(i).isEnabled()) {
+        continue;
+      }
+      IPRule irule = inputIpRules.get(i).getRule();
+      for(int j = i + 1; j < inputIpRules.size(); j++) {
+        if(inputIpRules.get(j).isEnabled()) {
+          IPRuleIntersection inter = irule.intersection(inputIpRules.get(j).getRule());
+          if(inter != null) res.add(inter);          
+        }
+      }
+    }
+    return res;
+  }
 	
 }

@@ -8,8 +8,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
+import org.filter.Filter;
 import org.filter.dto.IPRule;
-import org.filter.dto.IPRuleIntersection;
 import org.filter.listeners.IPRuleCBActionListener;
 import org.filter.listeners.IPRuleCBMouseListener;
 import org.filter.listeners.SelectAllListener;
@@ -22,12 +22,13 @@ public class CheckBoxPanel extends JPanel{
   private JCheckBox selectAll;
   private JScrollPane scroll;
   private GraphicPanel grPanel;
+  private JPanel panelCB;
   
-  public CheckBoxPanel(GraphicPanel grPanel) {
+  public CheckBoxPanel(GraphicPanel grPanel, ArrayList<IPRuleJCheckBox> list) {
     super(null);
     this.grPanel = grPanel;
     
-    selectAll = new JCheckBox("Select All");
+    selectAll = new JCheckBox(Filter.labels.getSelectAll());
     selectAll.setSelected(false);
     selectAll.setEnabled(false);
     selectAll.setBounds(0, 5, 200, 40);
@@ -39,36 +40,69 @@ public class CheckBoxPanel extends JPanel{
     this.add(selectAll);
     this.add(scroll);
     this.setBounds(0, 0, 200, 355);
+    
+    panelCB = new JPanel();
+    panelCB.setLayout(new BoxLayout(panelCB, BoxLayout.Y_AXIS));
+    
+    //rulesJB = new ArrayList<IPRuleJCheckBox>();
+    rulesJB = list;
+    
+    scroll.setViewportView(panelCB);
+    
+    selectAll.addActionListener(new SelectAllListener(grPanel, rulesJB));
   }
 
   public void setRules(ArrayList<IPRule> ipRules) {
-    JPanel panelCB = new JPanel();
-    panelCB.setLayout(new BoxLayout(panelCB, BoxLayout.Y_AXIS));
+    for(IPRule rule : ipRules) {
+      addRule(rule);
+    }
+  }
+  
+  public void addRule(IPRule ipRule) {
+    if(rulesJB.isEmpty()) {
+      selectAll.setSelected(true);
+      selectAll.setEnabled(true);
+    }
+    IPRuleJCheckBox ruleCB = new IPRuleJCheckBox(ipRule, "IP rule " + ipRule.getNumber());
+    ruleCB.addActionListener(new IPRuleCBActionListener(this));
+    switch (ipRule.getActivity()) {
+    case active:
+      ruleCB.setSelected(true);
+      selectAll.setSelected(selectAll.isSelected());
+      break;
+    case inactive:
+      ruleCB.setSelected(false);
+      selectAll.setSelected(false);
+      break;
+    }
+    rulesJB.add(ruleCB);
+    panelCB.add(ruleCB);
+    ruleCB.addMouseListener(IPRuleCBMouseListener.getInstance(rulesJB, this));
     
-    rulesJB = new ArrayList<IPRuleJCheckBox>(); 
-    boolean flag = true;
-    for(IPRule r : ipRules) {
-      IPRuleJCheckBox ruleCB = new IPRuleJCheckBox(r, "IP rule " + r.getNumber());
-      ruleCB.addActionListener(new IPRuleCBActionListener(this));
-      switch(r.getActivity()){
-      case active:
-        ruleCB.setSelected(true);
-        break;
-      case inactive:
-        ruleCB.setSelected(false);
-        flag = false;
+//    ((SelectAllListener)selectAll.getActionListeners()[0]).addIPRuleCB(ruleCB);
+    
+    grPanel.setRulesJCB(rulesJB);
+  }
+  
+  public void removeElement(IPRuleJCheckBox ruleCB) {
+    panelCB.remove(ruleCB);
+    rulesJB.remove(ruleCB);
+    
+    grPanel.newPaint();
+    this.repaint();
+  }
+  
+  public void removeElement(IPRule rule) {
+    for(IPRuleJCheckBox ruleCB : rulesJB) {
+      if(ruleCB.getRule() == rule) {
+        panelCB.remove(ruleCB);
+        rulesJB.remove(ruleCB);
         break;
       }
-      rulesJB.add(ruleCB);
-      panelCB.add(ruleCB);
-      ruleCB.addMouseListener(new IPRuleCBMouseListener(r));
     }
-    scroll.setViewportView(panelCB);
-    selectAll.addActionListener(new SelectAllListener(rulesJB, grPanel));
-    selectAll.setEnabled(true);
-    selectAll.setSelected(flag);
-    grPanel.setRulesJCB(rulesJB);
-    grPanel.setIntersectionRules(getRulesIntersectionList(ipRules));
+    
+    grPanel.newPaint();
+    this.repaint();
   }
 
   public ArrayList<IPRuleJCheckBox> getRulesJB() {
@@ -83,16 +117,12 @@ public class CheckBoxPanel extends JPanel{
     return selectAll;
   }
   
-  private ArrayList<IPRuleIntersection> getRulesIntersectionList(ArrayList<IPRule> inputIpRules) {
-    ArrayList<IPRuleIntersection> res = new ArrayList<IPRuleIntersection>();
-    for (int i = 0; i < inputIpRules.size() - 1; i++){
-      IPRule irule = inputIpRules.get(i);
-      for(int j = i + 1; j < inputIpRules.size(); j++){
-        IPRuleIntersection inter = irule.intersection(inputIpRules.get(j));
-        if(inter != null) res.add(inter);
-      }
-    }
-    return res;
+  public void clear() {
+    rulesJB.clear();
+    grPanel.setRulesJCB(rulesJB);
+    panelCB.removeAll();
+    selectAll.setEnabled(false);
+    selectAll.setSelected(false);
   }
   
 }

@@ -4,7 +4,7 @@ import javax.swing.JCheckBox;
 
 import org.filter.dto.IPRule;
 
-public class IPRuleJCheckBox extends JCheckBox{
+public class IPRuleJCheckBox extends JCheckBox {
 	
 	private static final long serialVersionUID = -1360190107574796036L;
 	

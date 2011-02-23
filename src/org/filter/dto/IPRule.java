@@ -8,6 +8,7 @@ import org.filter.RuleAction;
 import org.filter.common.Activity;
 import org.filter.common.IP4AddressInterval;
 import org.filter.common.InetPort;
+import org.filter.exeption.FilterExeption;
 
 public class IPRule extends Rule {
 	//ip:12:accept:log:0:1:0:tcp:195.208.113.132/255.255.255.255:any:77.88.21.0/255.255.255.0:http:any:any:any:65535:0-255:any:active:yandex
@@ -17,17 +18,16 @@ public class IPRule extends Rule {
 	public static ArrayList<String> list1 = new ArrayList<String>();
 	public static ArrayList<String> list2 = new ArrayList<String>();
 	
-	private String in;
-	private String out;
-	private String timeInterval;
+	private String in = "0";
+	private String out = "1";
+	private String timeInterval = "0";
 	private Protocol protocol;
-	private ArrayList<IP4AddressInterval> srcAddress;
-	private ArrayList<InetPort> srcPort;
-	private ArrayList<IP4AddressInterval> destAddress;
-	private ArrayList<InetPort> destPort;
+	private ArrayList<IP4AddressInterval> srcAddress = new ArrayList<IP4AddressInterval>();
+	private ArrayList<InetPort> srcPort = new ArrayList<InetPort>();
+	private ArrayList<IP4AddressInterval> destAddress = new ArrayList<IP4AddressInterval>();
+	private ArrayList<InetPort> destPort = new ArrayList<InetPort>();
 	
 	/*
-	//TODO: старшинство?
 	private String priority;
 	private String flags_TOS;
 	private String fragmentation;
@@ -35,9 +35,9 @@ public class IPRule extends Rule {
 	private String ttl;
 	private String icmp_code;
 	*/
-	private String infoBuf;
-	private Activity activity;
-	private String comment;
+	private String infoBuf = "any:any:any:65535:0-255";
+	private Activity activity = Activity.active;
+	private String comment = "";
 	
 	public String getIn() {
 		return in;
@@ -103,7 +103,7 @@ public class IPRule extends Rule {
 		this.srcPort = srcPort;
 	}
 	
-	private static ArrayList<InetPort> strToPort(String portStr) {
+	public static ArrayList<InetPort> strToPort(String portStr) {
 		ArrayList<InetPort> portsArray = new ArrayList<InetPort>();
 		String[] ports = portStr.split(",");
 		for (String p : ports){
@@ -226,9 +226,19 @@ public class IPRule extends Rule {
 			rule.setComment(params[18]);
 			break;*/
 		case TCP:
-			rule.setSrcAddress(strToAddress(params[8]));
+		  try {
+        rule.setSrcAddress(strToAddress(params[8]));
+      } catch (FilterExeption e) {
+        log = rule.getMessage() + ": invalid source address";
+        return null;
+      }
 			rule.setSrcPort(strToPort(params[9]));
-			rule.setDestAddress(strToAddress(params[10]));
+			try {
+        rule.setDestAddress(strToAddress(params[10]));
+      } catch (FilterExeption e) {
+        log = rule.getMessage() + ": invalid destin address";
+        return null;
+      }
 			rule.setDestPort(strToPort(params[11]));
 			/*
 			rule.setPriority(params[12]);
@@ -250,9 +260,19 @@ public class IPRule extends Rule {
 			rule.setComment(params[19]);
 			break;
 		case UDP:
-			rule.setSrcAddress(strToAddress(params[8]));
+		  try {
+		    rule.setSrcAddress(strToAddress(params[8]));		    
+		  } catch (FilterExeption e) {
+        log = rule.getMessage() + ": invalid source address";
+        return null;
+      }
 			rule.setSrcPort(strToPort(params[9]));
-			rule.setDestAddress(strToAddress(params[10]));
+			try {
+			  rule.setDestAddress(strToAddress(params[10]));
+      } catch (FilterExeption e) {
+        log = rule.getMessage() + ": invalid destin address";
+        return null;
+      }
 			rule.setDestPort(strToPort(params[11]));
 			/*
 			rule.setPriority(params[12]);
@@ -331,11 +351,11 @@ public class IPRule extends Rule {
     return res;
 	}
 	
-	private static ArrayList<IP4AddressInterval> strToAddress(String str) {
+	private static ArrayList<IP4AddressInterval> strToAddress(String str) throws FilterExeption {
 		ArrayList<IP4AddressInterval> res = new ArrayList<IP4AddressInterval>();
 		String[] buf = str.split(",");
 		for(String addr : buf){
-		  res.add(new IP4AddressInterval(addr));
+		  res.add(new IP4AddressInterval(addr));		    
 		}
 		return res;
 	}
@@ -432,14 +452,30 @@ public class IPRule extends Rule {
 	public IPRule clone(){
 	  IPRule rule = new IPRule();
 	  rule.setActivity(this.getActivity());
-	  rule.setDestAddress(this.getDestAddress());
-	  rule.setDestPort(this.getDestPort());
+	  ArrayList<IP4AddressInterval> newDestAddr = new ArrayList<IP4AddressInterval>();
+	  for(IP4AddressInterval addr : this.getDestAddress()) {
+	    newDestAddr.add(addr.clone());
+	  }
+	  rule.setDestAddress(newDestAddr);
+	  ArrayList<InetPort> newDestPort = new ArrayList<InetPort>();
+	  for(InetPort port : this.getDestPort()) {
+	    newDestPort.add(port.clone());
+	  }
+	  rule.setDestPort(newDestPort);
 	  rule.setLabel(this.getLabel());
 	  rule.setNumber(this.getNumber());
 	  rule.setProtocol(this.getProtocol());
 	  rule.setRuleAction(this.getRuleAction());
-	  rule.setSrcAddress(this.getSrcAddress());
-	  rule.setSrcPort(this.getSrcPort());	  
+	  ArrayList<IP4AddressInterval> newSrcAddr = new ArrayList<IP4AddressInterval>();
+	  for(IP4AddressInterval addr : this.getSrcAddress()) {
+      newSrcAddr.add(addr.clone());
+    }
+	  rule.setSrcAddress(newSrcAddr);
+	  ArrayList<InetPort> newSrcPort = new ArrayList<InetPort>();
+    for(InetPort port : this.getSrcPort()) {
+      newSrcPort.add(port.clone());
+    }
+	  rule.setSrcPort(newSrcPort);	  
 	  rule.setComment(this.getComment());
 	  /*
 	  rule.setFlags_TOS(rule.getFlags_TOS());
@@ -499,26 +535,6 @@ public class IPRule extends Rule {
       }
     }
     return true;
-  }
-
-  public IPRule subRule(IPRule rule) {
-    IPRule res = this.clone();
-    /*
-    res.setSrcAddress();
-    res.setSrcPort();
-    res.setDestAddress();
-    res.setDestPort();
-    res.setProtocol();
-    ArrayList<IPRule> buf = this.decompositRule(rule);
-    ArrayList<IPRule> toDel = new ArrayList<IPRule>();
-    for(IPRule rbuf : buf) {
-      if(rbuf.equals(rule)) {
-        toDel.add(rbuf);
-      }
-    }
-    buf.removeAll(toDel);*/
-    
-    return res;
   }
   
   public boolean addRule(IPRule rule) {
@@ -688,30 +704,4 @@ public class IPRule extends Rule {
     return res;
   }
 
-  public boolean decideAnomaly(IPRule rule, IPRuleIntersection inter) {
-    if(this.equals(inter)) {
-      this.setSrcAddress(rule.getSrcAddress());
-      this.setSrcPort(rule.getSrcPort());
-      this.setDestAddress(rule.getDestAddress());
-      this.setDestPort(rule.getDestPort());
-      return true;
-    }
-    if(rule.equals(inter)) {
-      return true;
-    }
-    
-    
-    return false;
-  }
-  
-  private int notNullItems() {
-    int res = 0;
-    if(srcAddress != null) res++;
-    if(srcPort != null) res++;
-    if(destAddress != null) res++;
-    if(destPort != null) res++;
-    if(protocol != null) res++;
-    return res;
-  }
-  
 }

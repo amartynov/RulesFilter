@@ -10,6 +10,7 @@ menu.file.exit=Выход
 
 menu.edit=Правка
 menu.edit.start=Старт
+menu.edit.analiz=Анализировать
 
 menu.help=Помощь
 menu.help.about=О программе
@@ -25,3 +26,28 @@ log.import.ip = Импортировано ip правил:
 #panels headers
 panel.input=Входной файл
 panel.output=Выходной файл
+panel.selectall=Выбрать все
+
+#rule labels
+rule.numberlabel=Номер
+rule.protocollabel=Протокол
+rule.actionlabel=Действие
+rule.sourceIPlabel=IP источника
+rule.destIPlabel=IP приемника
+rule.sourcePortlabel=Порт источника
+rule.destPortlabel=Порт приемника
+rule.protocol.any=Все
+
+#buttons labels
+button.ok=Применить
+button.validate=Проверить
+button.cancel=Отмена
+button.exit=Выход
+button.remove=Удалить
+
+#popup menu labels
+popupmenu.edit=Редактировать
+popupmenu.remove=Удалить
+popupmenu.add=Добавить
+
+message.edit.remove=Удалить сообщение?

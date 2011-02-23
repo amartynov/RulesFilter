@@ -2,6 +2,8 @@ package org.filter.utils;
 
 import java.util.ArrayList;
 
+import org.filter.exeption.FilterExeption;
+
 public class Utils {
   
   /**
@@ -53,13 +55,23 @@ public class Utils {
     return res;
   }
   
-  public static long strToLong(String str) {
+  public static long strToLong(String str) throws FilterExeption {
     String[] buf = str.replace(".", "/").split("/");
+    if(buf.length != 4) {
+      throw new FilterExeption();
+    }
     long res = 0;
     res |= Integer.parseInt(buf[0]);
+    if(res > 255) {
+      throw new FilterExeption();
+    }
     for(int i = 1; i < 4; i++) {
       res <<= 8;
-      res |= Integer.parseInt(buf[i]);
+      int num = Integer.parseInt(buf[i]);
+      if(num > 255) {
+        throw new FilterExeption();
+      }
+      res |= num;
     }
     return res;
   }

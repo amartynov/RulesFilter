@@ -10,7 +10,7 @@ import org.filter.common.Activity;
 import org.filter.viewelements.GraphicPanel;
 import org.filter.viewelements.IPRuleJCheckBox;
 
-public class SelectAllListener implements ActionListener{
+public class SelectAllListener implements ActionListener {
 	
 	private ArrayList<IPRuleJCheckBox> list;
 	private GraphicPanel panel;
@@ -19,13 +19,29 @@ public class SelectAllListener implements ActionListener{
 		this.list = list;
 		this.panel = panel;
 	}
+	
+	public SelectAllListener(GraphicPanel panel, ArrayList<IPRuleJCheckBox> list){
+//	  this.list = new ArrayList<IPRuleJCheckBox>();
+	  this.list = list;
+    this.panel = panel;
+  }
+	
+	public void addIPRuleCB(IPRuleJCheckBox rule) {
+	  list.add(rule);
+	}
+	
+	public void removeIPRuleCB(IPRuleJCheckBox rule) {
+	  list.remove(rule);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		boolean val = ((JCheckBox)e.getSource()).isSelected();
 		for(IPRuleJCheckBox cb : list) {
-			cb.setSelected(val);
-			cb.getRule().setActivity(val ? Activity.active : Activity.inactive);
+		  if(cb.isEnabled()) {
+		    cb.setSelected(val);
+		    cb.getRule().setActivity(val ? Activity.active : Activity.inactive);		    
+		  }
 		}
 		panel.clearRects();
 		panel.repaint();

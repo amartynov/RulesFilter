@@ -4,10 +4,10 @@ import org.filter.RuleAction;
 
 public class Rule {
 	
-	private String label;
+	private String label = "ip";
 	private int number;
 	private RuleAction ruleAction;
-	private String ruleLog;
+	private String ruleLog = "log";
 	
 	
 	public int getNumber() {

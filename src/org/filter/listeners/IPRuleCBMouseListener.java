@@ -2,74 +2,88 @@ package org.filter.listeners;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.util.ArrayList;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 
+import org.filter.Filter;
 import org.filter.dto.IPRule;
+import org.filter.viewelements.CheckBoxPanel;
+import org.filter.viewelements.EditRuleDialog;
+import org.filter.viewelements.IPRuleJCheckBox;
 
-public class IPRuleCBMouseListener implements MouseListener{
+public class IPRuleCBMouseListener extends MouseAdapter {
 	
-	private IPRule rule;
+  private static ArrayList<IPRuleJCheckBox> rulesJB;
+	private static IPRuleJCheckBox rule;
+	private static JPopupMenu menu = null;
+	private static EditRuleDialog dialog;
+	public static CheckBoxPanel panel;
 	
-	public IPRuleCBMouseListener(IPRule rule) {
-		this.rule = rule;
+	private static IPRuleCBMouseListener instance;
+	
+	static {
+	  menu = new JPopupMenu();
+	  menu.setSize(100, 100);
+    JMenuItem edit = new JMenuItem(Filter.labels.getPopupMenuEditLabel());
+    edit.addActionListener(new ActionListener() {
+      
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        dialog.setRule(rule.getRule());
+        dialog.setVisible(true);
+      }
+    });
+    menu.add(edit);
+    
+    JMenuItem remove = new JMenuItem(Filter.labels.getPopupMenuRemoveLabel());
+    remove.addActionListener(new ActionListener() {
+      
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if(JOptionPane.showConfirmDialog(null, Filter.labels.getMessageRemoveLabel(), "", JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
+          panel.removeElement(rule);        
+        }
+      }
+    });
+    menu.add(remove);
+    
+    JMenuItem add = new JMenuItem(Filter.labels.getPopupMenuAddLabel());
+    add.addActionListener(new ActionListener() {
+      
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        IPRule rule = new IPRule();
+        panel.addRule(rule);
+        dialog.newRule(rule);
+        dialog.setVisible(true);
+      }
+    });
+    menu.add(add);
 	}
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+	
+	public static IPRuleCBMouseListener getInstance(ArrayList<IPRuleJCheckBox> rules, CheckBoxPanel cbPanel) {
+	  if(instance == null) {
+	    instance = new IPRuleCBMouseListener();
+	    rulesJB = rules;
+	    panel = cbPanel;
+	    dialog = new EditRuleDialog(rulesJB);
+	  }
+	  return instance;
 	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+	
+	private IPRuleCBMouseListener() {}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if(e.getButton() == MouseEvent.BUTTON3) {
-		  final JDialog dialog = new JDialog();
-		  dialog.setLayout(null);
-		  dialog.setSize(500, 200);
-		  dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		  
-		  JLabel l = new JLabel(rule.toString());
-		  l.setBounds(0, 0, 400, 100);
-		  JButton button = new JButton("Ok");
-		  button.setBounds(140, 140, 55, 55);
-		  button.addActionListener(new ActionListener() {
-        
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          dialog.dispose();
-        }
-      });
-		  
-		  dialog.setModal(false);
-		  
-		  dialog.add(l);
-		  dialog.add(button);
-		  
-		  dialog.setVisible(true);
+		  rule = (IPRuleJCheckBox)e.getComponent();
+		  menu.show(e.getComponent(), e.getX(), e.getY());
 		}
-		
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 

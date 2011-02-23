@@ -11,6 +11,7 @@ public class LabelList {
   
   private String menuEditLabel;
   private String menuEditStartLabel;
+  private String menuEditAnalizLabel;
   
   private String menuHelpLabel;
   private String menuHelpAboutLabel;
@@ -23,7 +24,140 @@ public class LabelList {
   
   private String panelInput;
   private String panelOutput;
+  private String selectAll;
   
+  private String numberLabel;
+  private String protocolLabel;
+  private String actionLabel;
+  private String sourceIPLabel;
+  private String destIPLabel;
+  private String sourcePortLabel;
+  private String destPortLabel;
+  
+  private String buttonOkLabel;
+  private String buttonCancelLabel;
+  private String buttonRemoveLabel;
+  private String buttonValidateLabel;
+  private String buttonExitLabel;
+  
+  private String anyProtocol;
+  
+  private String popupMenuEditLabel;
+  private String popupMenuRemoveLabel;
+  private String popupMenuAddLabel;
+  
+  private String messageRemoveLabel;
+  
+  
+  
+  public String getPopupMenuAddLabel() {
+    return popupMenuAddLabel;
+  }
+  public void setPopupMenuAddLabel(String popupMenuAddLabel) {
+    this.popupMenuAddLabel = popupMenuAddLabel;
+  }
+  public String getMessageRemoveLabel() {
+    return messageRemoveLabel;
+  }
+  public void setMessageRemoveLabel(String messageRemoveLabel) {
+    this.messageRemoveLabel = messageRemoveLabel;
+  }
+  public String getPopupMenuEditLabel() {
+    return popupMenuEditLabel;
+  }
+  public void setPopupMenuEditLabel(String popupMenuEditLabel) {
+    this.popupMenuEditLabel = popupMenuEditLabel;
+  }
+  public String getPopupMenuRemoveLabel() {
+    return popupMenuRemoveLabel;
+  }
+  public void setPopupMenuRemoveLabel(String popupMenuRemoveLabel) {
+    this.popupMenuRemoveLabel = popupMenuRemoveLabel;
+  }
+  public String getButtonExitLabel() {
+    return buttonExitLabel;
+  }
+  public void setButtonExitLabel(String buttonExitLabel) {
+    this.buttonExitLabel = buttonExitLabel;
+  }
+  public String getButtonValidateLabel() {
+    return buttonValidateLabel;
+  }
+  public void setButtonValidateLabel(String buttonValidateLabel) {
+    this.buttonValidateLabel = buttonValidateLabel;
+  }
+  public String getSelectAll() {
+    return selectAll;
+  }
+  public void setSelectAll(String selectAll) {
+    this.selectAll = selectAll;
+  }
+  public String getAnyProtocol() {
+    return anyProtocol;
+  }
+  public void setAnyProtocol(String anyProtocol) {
+    this.anyProtocol = anyProtocol;
+  }
+  public String getButtonRemoveLabel() {
+    return buttonRemoveLabel;
+  }
+  public void setButtonRemoveLabel(String buttonRemoveLabel) {
+    this.buttonRemoveLabel = buttonRemoveLabel;
+  }
+  public String getButtonOkLabel() {
+    return buttonOkLabel;
+  }
+  public void setButtonOkLabel(String buttonOkLabel) {
+    this.buttonOkLabel = buttonOkLabel;
+  }
+  public String getButtonCancelLabel() {
+    return buttonCancelLabel;
+  }
+  public void setButtonCancelLabel(String buttonCancelLabel) {
+    this.buttonCancelLabel = buttonCancelLabel;
+  }
+  public String getProtocolLabel() {
+    return protocolLabel;
+  }
+  public void setProtocolLabel(String protocolLabel) {
+    this.protocolLabel = protocolLabel;
+  }
+  public String getActionLabel() {
+    return actionLabel;
+  }
+  public void setActionLabel(String actionLabel) {
+    this.actionLabel = actionLabel;
+  }
+  public String getSourceIPLabel() {
+    return sourceIPLabel;
+  }
+  public void setSourceIPLabel(String sourceIPLabel) {
+    this.sourceIPLabel = sourceIPLabel;
+  }
+  public String getDestIPLabel() {
+    return destIPLabel;
+  }
+  public void setDestIPLabel(String destIPLabel) {
+    this.destIPLabel = destIPLabel;
+  }
+  public String getSourcePortLabel() {
+    return sourcePortLabel;
+  }
+  public void setSourcePortLabel(String sourcePortLabel) {
+    this.sourcePortLabel = sourcePortLabel;
+  }
+  public String getDestPortLabel() {
+    return destPortLabel;
+  }
+  public void setDestPortLabel(String destPortLabel) {
+    this.destPortLabel = destPortLabel;
+  }
+  public String getNumberLabel() {
+    return numberLabel;
+  }
+  public void setNumberLabel(String numberLabel) {
+    this.numberLabel = numberLabel;
+  }
   public String getMenuFileLabel() {
     return menuFileLabel;
   }
@@ -113,6 +247,12 @@ public class LabelList {
   }
   public void setProgName(String progName) {
     this.progName = progName;
+  }
+  public String getMenuEditAnalizLabel() {
+    return menuEditAnalizLabel;
+  }
+  public void setMenuEditAnalizLabel(String menuEditAnalizLabel) {
+    this.menuEditAnalizLabel = menuEditAnalizLabel;
   }
   
 }

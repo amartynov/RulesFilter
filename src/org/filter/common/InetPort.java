@@ -5,7 +5,6 @@ import java.util.HashMap;
 
 import org.filter.dto.LineProjection;
 
-
 public class InetPort {
 	
 	private static final HashMap<String, Integer> portList = new HashMap<String, Integer>();
@@ -74,7 +73,45 @@ public class InetPort {
 		this.rPort = portList.get(sPort);
 	}
 	
-	public LineProjection getLineProjection(){
+	public static boolean validate(String str) {
+	  String buf[] = str.split("-");
+	  if(buf.length == 1) {
+	    try {
+	      int num = Integer.parseInt(str);
+	      if(num > maxPort) {
+	        return false;
+	      }
+	    } catch (NumberFormatException e) {
+	      if(!"any".equals(str)) {
+	        if(portList.get(str) == null) {
+	          return false;
+	        }	        
+	      }
+	    }
+	  } else {
+	    if(buf.length == 2) {
+	      try {
+	        int num1 = Integer.parseInt(buf[0]);
+	        if(num1 > maxPort) {
+	          return false;
+	        }
+	        
+	        int num2 = Integer.parseInt(buf[1]);
+          if(num2 > maxPort) {
+            return false;
+          }
+          return num1 < num2;
+	      } catch (NumberFormatException e) {
+	          return false;
+	      }
+	    } else {
+	      return false;
+	    }
+	  }
+	  return true;
+	  
+	}
+	public LineProjection getLineProjection() {
 	  double start, length;
     if(port != null){
       start = port.doubleValue() / maxPort;
@@ -245,6 +282,14 @@ public class InetPort {
       }
     }
     return false;
+  }
+  
+  public InetPort clone() {
+    if(this.port != null) {
+      return new InetPort(new Integer(this.port));      
+    } else {
+      return new InetPort(new Integer(this.lPort), new Integer(this.rPort));
+    }
   }
 	
 	/* RFC 1700 (October 1994)

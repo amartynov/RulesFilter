@@ -4,40 +4,30 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-
+import org.filter.Filter;
+import org.filter.common.Activity;
 import org.filter.dto.IPRule;
 import org.filter.dto.IPRuleIntersection;
 import org.filter.viewelements.CheckBoxPanel;
+import org.filter.viewelements.IPRuleJCheckBox;
+import org.filter.viewelements.MainMenu;
 
 public class StartMenuItemListener implements ActionListener {
   
-  private ArrayList<IPRule> outputRulesList;
-  private ArrayList<IPRule> inputRulesList;
-  private JPanel outputPanel;
-  private JMenuItem export;
-  
-  public StartMenuItemListener(ArrayList<IPRule> outputRulesList, ArrayList<IPRule> inputList,JPanel outputPanel, JMenuItem export) {
-    this.outputRulesList = outputRulesList;
-    this.outputPanel = outputPanel;
-    this.inputRulesList = inputList;
-    this.export = export;
-  }
-
   @Override
   public void actionPerformed(ActionEvent e) {
-    outputRulesList.clear();
+    Filter.clearOutput();
     ArrayList<IPRule> buf = new ArrayList<IPRule>();
     ArrayList<IPRule> toDelete = new ArrayList<IPRule>();
     ArrayList<IPRule> toInsert = new ArrayList<IPRule>();
-    for(IPRule irule : inputRulesList){
-      if(outputRulesList.isEmpty()) {
-        outputRulesList.add(irule);
+    for(IPRuleJCheckBox iruleJCB : Filter.inputCBList) {
+      IPRule irule = iruleJCB.getRule();
+      if(irule.getActivity() == Activity.inactive || iruleJCB.isEnabled() == false) {
         continue;
       }
-      buf.add(irule);
-      for(IPRule orule : outputRulesList) {
+     
+      buf.add(irule.clone());
+      for(IPRule orule : Filter.outputIpRules) {
         for(IPRule bufRule : buf) {
           IPRuleIntersection inter = orule.intersection(bufRule);
           if(!inter.isEmpty()) {
@@ -53,44 +43,33 @@ public class StartMenuItemListener implements ActionListener {
         if(!toDelete.isEmpty()) buf.removeAll(toDelete);
         toDelete.clear();
         if(!toInsert.isEmpty()) buf.addAll(toInsert); 
-        /*{
-          int kol = toInsert.size();
-          iRule:
-          for(int i = 0; i < kol - 1; i++) {
-            for(int j = i + 1; j < kol; j++) {
-              if(toInsert.get(i).addRule(toInsert.get(j))) {
-                toInsert.remove(toInsert.get(j));
-                kol--;
-                i--;
-                continue iRule;
-              }
-            }
-          }
-          buf.addAll(toInsert);
-        }*/
+        
         toInsert.clear();
       }
-      outputRulesList.addAll(buf);
+      
+      Filter.outputIpRules.addAll(buf);        
+//      for(IPRule rule : buf) {
+//      }
       buf.clear();
       toInsert.clear();
     }
     
     if(IPRule.globalIpRule != null) {
-      for(IPRule r : outputRulesList) {
+      for(IPRule r : Filter.outputIpRules) {
         if(r.getRuleAction() == IPRule.globalIpRule.getRuleAction()) {
           toDelete.add(r);
         }
       }
-      outputRulesList.removeAll(toDelete);
+      Filter.outputIpRules.removeAll(toDelete);
     }
     
-    int kol = outputRulesList.size();
+    int kol = Filter.outputIpRules.size();
     iRule:
     for(int i = 0; i < kol - 1; i++) {
       for(int j = i + 1; j < kol; j++) {
-        if(outputRulesList.get(i).getRuleAction() == outputRulesList.get(j).getRuleAction()) {
-          if(outputRulesList.get(i).addRule(outputRulesList.get(j))) {
-            outputRulesList.remove(outputRulesList.get(j));
+        if(Filter.outputIpRules.get(i).getRuleAction() == Filter.outputIpRules.get(j).getRuleAction()) {
+          if(Filter.outputIpRules.get(i).addRule(Filter.outputIpRules.get(j))) {
+            Filter.outputIpRules.remove(Filter.outputIpRules.get(j));
             kol--;
             i--;
             continue iRule;
@@ -99,33 +78,12 @@ public class StartMenuItemListener implements ActionListener {
       }
     }
     
-    ((CheckBoxPanel)outputPanel.getComponent(0)).setRules(outputRulesList);
-    for(ActionListener al : export.getActionListeners()) {
+    ((CheckBoxPanel)Filter.outputPanel.getComponent(0)).setRules(Filter.outputIpRules);
+    for(ActionListener al : MainMenu.exportFileItem.getActionListeners()) {
       if(al instanceof ExportFileMenuItemListener){
-        ((ExportFileMenuItemListener) al).setOutputRulesList(outputRulesList);
+        ((ExportFileMenuItemListener) al).setOutputRulesList(Filter.outputIpRules);
       }
     }
-    export.setEnabled(true);
+    MainMenu.exportFileItem.setEnabled(true);
   }
-  /*
-  private ArrayList<IPRule> decompositRuleByIntersection(IPRuleIntersection inter){
-    ArrayList<IPRule> res = new ArrayList<IPRule>();
-    
-    IPRule rule1 = inter.getRule1();
-    IPRule rule2 = inter.getRule2();
-    
-    if(rule1.getRuleAction() == rule2.getRuleAction()) {
-      if(rule1.equals(inter)){
-        res.add(rule2);
-        return res;
-      } else if(rule2.equals(inter)) {
-        //res.add(rule1);
-        return res;
-      }
-    }
-    res.add(rule1);
-    res.addAll(rule2.subRule(inter));
-    
-    return res;
-  }*/
 }
