@@ -2,7 +2,9 @@ package org.filter.utils;
 
 import java.util.ArrayList;
 
-import org.filter.exeption.FilterExeption;
+import org.filter.dto.IPRule;
+import org.filter.dto.IPRuleIntersection;
+import org.filter.exeption.FilterException;
 
 public class Utils {
   
@@ -55,24 +57,91 @@ public class Utils {
     return res;
   }
   
-  public static long strToLong(String str) throws FilterExeption {
+  public static long strToLong(String str) throws FilterException {
     String[] buf = str.replace(".", "/").split("/");
     if(buf.length != 4) {
-      throw new FilterExeption();
+      throw new FilterException("Адрес должен состоять из четырех байт");
     }
     long res = 0;
     res |= Integer.parseInt(buf[0]);
     if(res > 255) {
-      throw new FilterExeption();
+      throw new FilterException("Значение байта не должно превышать 255");
     }
     for(int i = 1; i < 4; i++) {
       res <<= 8;
       int num = Integer.parseInt(buf[i]);
       if(num > 255) {
-        throw new FilterExeption();
+        throw new FilterException("Значение байта не должно превышать 255");
       }
       res |= num;
     }
     return res;
+  }
+  
+  public static ArrayList<IPRule> getConsistentsRules (ArrayList<IPRule> newRules, ArrayList<IPRule> oldRules) {
+    ArrayList<IPRule> res = new ArrayList<IPRule>();
+    
+    res.addAll(oldRules);
+    
+    ArrayList<IPRule> buf = new ArrayList<IPRule>();
+    ArrayList<IPRule> toDelete = new ArrayList<IPRule>();
+    ArrayList<IPRule> toInsert = new ArrayList<IPRule>();
+    for(IPRule irule : newRules) {
+      buf.add(irule.clone());
+      for(IPRule orule : res) {
+        for(IPRule bufRule : buf) {
+          IPRuleIntersection inter = orule.intersection(bufRule);
+          if(!inter.isEmpty()) {
+            toDelete.add(bufRule);
+            ArrayList<IPRule> ibuf = bufRule.decompositRule(inter);
+            for(IPRule rule: ibuf) {
+              if(!rule.equals((IPRule)inter)) {
+                toInsert.add(rule);
+              }
+            }
+          }
+        }
+        if(!toDelete.isEmpty()) buf.removeAll(toDelete);
+        toDelete.clear();
+        if(!toInsert.isEmpty()) buf.addAll(toInsert); 
+        
+        toInsert.clear();
+      }
+      
+      res.addAll(buf);        
+//      for(IPRule rule : buf) {
+//      }
+      buf.clear();
+      toInsert.clear();
+    }
+    
+    if(IPRule.globalIpRule != null) {
+      for(IPRule r : res) {
+        if(r.getRuleAction() == IPRule.globalIpRule.getRuleAction()) {
+          toDelete.add(r);
+        }
+      }
+      res.removeAll(toDelete);
+    }
+    
+    int kol = res.size();
+    iRule:
+    for(int i = 0; i < kol - 1; i++) {
+      for(int j = i + 1; j < kol; j++) {
+        if(res.get(i).getRuleAction() == res.get(j).getRuleAction()) {
+          if(res.get(i).addRule(res.get(j))) {
+            res.remove(res.get(j));
+            kol--;
+            i--;
+            continue iRule;
+          }          
+        }
+      }
+    }
+    
+    res.removeAll(oldRules);
+    
+    return res;
+    
   }
 }

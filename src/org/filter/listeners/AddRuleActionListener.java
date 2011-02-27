@@ -15,7 +15,7 @@ public class AddRuleActionListener implements ActionListener {
     ArrayList<IPRule> rules = new ArrayList<IPRule>();
     IPRule rule = new IPRule();
     rules.add(rule);
-    ((CheckBoxPanel)Filter.inputPanel.getComponent(0)).setRules(rules);
+    //((CheckBoxPanel)Filter.inputPanel.getComponent(0)).setRules(rules);
     
   }
 

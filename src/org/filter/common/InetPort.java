@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.filter.dto.LineProjection;
+import org.filter.exeption.FilterException;
 
 public class InetPort {
 	
@@ -73,6 +74,37 @@ public class InetPort {
 		this.rPort = portList.get(sPort);
 	}
 	
+	public static ArrayList<InetPort> strToPort(String portStr) throws FilterException {
+    ArrayList<InetPort> portsArray = new ArrayList<InetPort>();
+    String[] ports = portStr.split(",");
+    for (String p : ports){
+      if(p.equals("any")){
+        portsArray.add(new InetPort(0, InetPort.maxPort));
+      } else {
+        String[] val = p.split("-");
+        if(val.length == 1){
+          Integer n = null;
+          InetPort iPort = null;
+          try{
+            n = Integer.parseInt(val[0]);
+            iPort = new InetPort(n);
+          } catch (Exception e) {
+            iPort = new InetPort(val[0]);
+            if(iPort.getPort() == null) {
+              throw new FilterException("unknown port label: " + p);
+            }
+          }
+          portsArray.add(iPort);
+        } else if(val.length == 2) {
+          Integer min = Integer.parseInt(val[0]);
+          Integer max = Integer.parseInt(val[1]);
+          portsArray.add(new InetPort(min, max));
+        }
+      }
+    }
+    return portsArray;
+  }
+	
 	public static boolean validate(String str) {
 	  String buf[] = str.split("-");
 	  if(buf.length == 1) {
@@ -111,6 +143,7 @@ public class InetPort {
 	  return true;
 	  
 	}
+	
 	public LineProjection getLineProjection() {
 	  double start, length;
     if(port != null){

@@ -1,10 +1,16 @@
 package org.filter.viewelements;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
@@ -14,7 +20,7 @@ import org.filter.listeners.IPRuleCBActionListener;
 import org.filter.listeners.IPRuleCBMouseListener;
 import org.filter.listeners.SelectAllListener;
 
-public class CheckBoxPanel extends JPanel{
+public class CheckBoxPanel extends JPanel {
   
   private static final long serialVersionUID = -6947150222450710489L;
   
@@ -24,8 +30,29 @@ public class CheckBoxPanel extends JPanel{
   private GraphicPanel grPanel;
   private JPanel panelCB;
   
+  private JPopupMenu menu = null;
+  private EditRuleDialog dialog;
+  private CheckBoxPanel panel;
+  
   public CheckBoxPanel(GraphicPanel grPanel, ArrayList<IPRuleJCheckBox> list) {
     super(null);
+    panel = this;
+    dialog = new EditRuleDialog(panel);
+    menu = new JPopupMenu();
+    menu.setSize(100, 100);
+    JMenuItem add = new JMenuItem(Filter.labels.getPopupMenuAddLabel());
+    add.addActionListener(new ActionListener() {
+      
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        IPRule rule = new IPRule();
+//        panel.addRule(rule);
+        dialog.newRule(rule);
+        dialog.setVisible(true);
+      }
+    });
+    menu.add(add);
+    
     this.grPanel = grPanel;
     
     selectAll = new JCheckBox(Filter.labels.getSelectAll());
@@ -50,6 +77,17 @@ public class CheckBoxPanel extends JPanel{
     scroll.setViewportView(panelCB);
     
     selectAll.addActionListener(new SelectAllListener(grPanel, rulesJB));
+    
+    
+    scroll.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        //super.mousePressed(e);
+        if(e.getButton() == MouseEvent.BUTTON3) {
+          menu.show(e.getComponent(), e.getX(), e.getY());
+        }
+      }
+    });
   }
 
   public void setRules(ArrayList<IPRule> ipRules) {
@@ -59,10 +97,6 @@ public class CheckBoxPanel extends JPanel{
   }
   
   public void addRule(IPRule ipRule) {
-    if(rulesJB.isEmpty()) {
-      selectAll.setSelected(true);
-      selectAll.setEnabled(true);
-    }
     IPRuleJCheckBox ruleCB = new IPRuleJCheckBox(ipRule, "IP rule " + ipRule.getNumber());
     ruleCB.addActionListener(new IPRuleCBActionListener(this));
     switch (ipRule.getActivity()) {
@@ -77,8 +111,22 @@ public class CheckBoxPanel extends JPanel{
     }
     rulesJB.add(ruleCB);
     panelCB.add(ruleCB);
-    ruleCB.addMouseListener(IPRuleCBMouseListener.getInstance(rulesJB, this));
+    ruleCB.addMouseListener(new IPRuleCBMouseListener(ruleCB, this));
     
+    if(!Filter.inputCBList.isEmpty()) {
+      selectAll.setSelected(true);
+      selectAll.setEnabled(true);
+      MainMenu.startEditItem.setEnabled(true);
+      MainMenu.analizEditItem.setEnabled(true);
+    }
+    
+    if(!Filter.outputCBList.isEmpty()) {
+      selectAll.setSelected(true);
+      selectAll.setEnabled(true);
+      MainMenu.startEditItem.setEnabled(true);
+      MainMenu.analizEditItem.setEnabled(true);
+      MainMenu.exportFileItem.setEnabled(true);
+    }
 //    ((SelectAllListener)selectAll.getActionListeners()[0]).addIPRuleCB(ruleCB);
     
     grPanel.setRulesJCB(rulesJB);
@@ -88,23 +136,16 @@ public class CheckBoxPanel extends JPanel{
     panelCB.remove(ruleCB);
     rulesJB.remove(ruleCB);
     
-    grPanel.newPaint();
-    this.repaint();
-  }
-  
-  public void removeElement(IPRule rule) {
-    for(IPRuleJCheckBox ruleCB : rulesJB) {
-      if(ruleCB.getRule() == rule) {
-        panelCB.remove(ruleCB);
-        rulesJB.remove(ruleCB);
-        break;
-      }
+    if(getRulesJB().isEmpty()) {
+      selectAll.setSelected(false);
+      selectAll.setEnabled(false);
+      MainMenu.startEditItem.setEnabled(false);
     }
     
     grPanel.newPaint();
     this.repaint();
   }
-
+  
   public ArrayList<IPRuleJCheckBox> getRulesJB() {
     return rulesJB;
   }
@@ -123,6 +164,14 @@ public class CheckBoxPanel extends JPanel{
     panelCB.removeAll();
     selectAll.setEnabled(false);
     selectAll.setSelected(false);
+  }
+  
+  public ArrayList<IPRule> getRules() {
+    ArrayList<IPRule> rules = new ArrayList<IPRule>();
+    for(IPRuleJCheckBox ruleCB : rulesJB) {
+      rules.add(ruleCB.getRule());
+    }
+    return rules;
   }
   
 }

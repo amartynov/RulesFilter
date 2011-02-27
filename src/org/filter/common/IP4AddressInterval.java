@@ -3,7 +3,7 @@ package org.filter.common;
 import java.util.ArrayList;
 
 import org.filter.dto.LineProjection;
-import org.filter.exeption.FilterExeption;
+import org.filter.exeption.FilterException;
 import org.filter.utils.Utils;
 
 public class IP4AddressInterval {
@@ -18,21 +18,39 @@ public class IP4AddressInterval {
     raddr = r;
   }
   
-  public IP4AddressInterval(String addr) throws FilterExeption {
-    if(addr.trim().isEmpty()) throw new FilterExeption();
-    String[] buf = addr.split("-");
-    if(buf.length != 2) {
-      buf = addr.split("/");
-      long mask = Utils.strToLong(buf[1]);
-      laddr = Utils.strToLong(buf[0]);
-      if(mask != 0xffffffffL) {
-        mask ^= 0xffffffffL;
-        raddr = laddr | mask;
-      }
+  public IP4AddressInterval(String addr) throws FilterException {
+    if(addr.trim().isEmpty()) throw new FilterException("String is empty");
+    if(addr.trim().equals("any")) {
+      laddr = 0L;
+      raddr = maxIpAddress;
     } else {
-      laddr = Utils.strToLong(buf[0]);
-      raddr = Utils.strToLong(buf[1]);
+      String[] buf = addr.split("-");
+      if(buf.length != 2) {
+        buf = addr.split("/");
+        if(buf.length != 2) throw new FilterException("invalid address");
+        long mask = Utils.strToLong(buf[1]);
+        laddr = Utils.strToLong(buf[0]);
+        if(mask != 0xffffffffL) {
+          mask ^= 0xffffffffL;
+          raddr = laddr | mask;
+        }
+      } else {
+        laddr = Utils.strToLong(buf[0]);
+        raddr = Utils.strToLong(buf[1]);
+      }      
     }
+  }
+  
+  public static ArrayList<IP4AddressInterval> strToAddress(String str) throws FilterException {
+    if(str == null || str.trim().isEmpty()) {
+      throw new FilterException("Пустая строка");
+    }
+    ArrayList<IP4AddressInterval> res = new ArrayList<IP4AddressInterval>();
+    String[] buf = str.split(",");
+    for(String addr : buf){
+      res.add(new IP4AddressInterval(addr));        
+    }
+    return res;
   }
   
   public Long getLaddr() {
@@ -73,7 +91,7 @@ public class IP4AddressInterval {
       try {
         Utils.strToLong(buf[1]);
         Utils.strToLong(buf[0]);        
-      } catch (FilterExeption e) {
+      } catch (FilterException e) {
         return false;
       }
      
@@ -81,7 +99,7 @@ public class IP4AddressInterval {
       try {
         Utils.strToLong(buf[0]);
         Utils.strToLong(buf[1]);        
-      } catch (FilterExeption e) {
+      } catch (FilterException e) {
         return false;
       }
     }

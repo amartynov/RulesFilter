@@ -5,16 +5,16 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
 
 import org.filter.dto.IPRule;
+import org.filter.viewelements.CheckBoxPanel;
 
 public class ExportFileMenuItemListener implements ActionListener{
 
-  private ArrayList<IPRule> outputRulesList;
-  
+  private CheckBoxPanel panel;
+   
   @Override
   public void actionPerformed(ActionEvent e) {
     JFileChooser jfc = new JFileChooser();
@@ -28,8 +28,8 @@ public class ExportFileMenuItemListener implements ActionListener{
           fos.write((str + '\n').getBytes());
         }
         if(IPRule.globalIpRule != null) fos.write((IPRule.globalIpRule.toString() + '\n').getBytes());
-        if(outputRulesList != null) {
-          for(IPRule rule : outputRulesList)
+        if(panel != null) {
+          for(IPRule rule : panel.getRules())
             fos.write((rule.toString() + '\n').getBytes());
         }
         for(String str : IPRule.list2) {
@@ -42,7 +42,10 @@ public class ExportFileMenuItemListener implements ActionListener{
     }
     
   }
-  public void setOutputRulesList(ArrayList<IPRule> outputRulesList) {
-    this.outputRulesList = outputRulesList;
+  
+  public void setPanel(CheckBoxPanel panel) {
+    this.panel = panel;
   }
+  
+  
 }

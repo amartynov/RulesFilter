@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -19,8 +20,8 @@ import org.filter.RuleAction;
 import org.filter.common.IP4AddressInterval;
 import org.filter.common.InetPort;
 import org.filter.dto.IPRule;
-import org.filter.exeption.FilterExeption;
-import org.filter.listeners.IPRuleCBMouseListener;
+import org.filter.exeption.FilterException;
+import org.filter.utils.Utils;
 
 public class EditRuleDialog extends JDialog {
   
@@ -28,22 +29,22 @@ public class EditRuleDialog extends JDialog {
   
   private IPRule rule;
   private JTextField numberTA;
-  private JTextField protocolTA;
+  private JComboBox protocolTA;
   private JTextField sourceIPTA;
   private JTextField sourcePortTA;
   private JTextField destIPTA;
   private JTextField destPortTA;
-  private JTextField actionTA;
-  
-  private ArrayList<IPRuleJCheckBox> rulesJB;
+  private JComboBox actionTA;
+  private CheckBoxPanel panel;
   
   private boolean newRule = false;
   private Boolean saved = null;
   
-  public EditRuleDialog(final ArrayList<IPRuleJCheckBox> rulesJB) {
+  public EditRuleDialog(final CheckBoxPanel panel) {
     super();
     
-    this.rulesJB = rulesJB;
+    //this.rulesJB = rulesJB;
+    this.panel = panel;
     
     int labelsY = 5;
     int labelsHeight = 20;
@@ -77,7 +78,7 @@ public class EditRuleDialog extends JDialog {
     
     JLabel protocolLabel = new JLabel(Filter.labels.getProtocolLabel());
     protocolLabel.setBounds(nextX += (XGap  + numberWidth), labelsY, protocolWidth, labelsHeight);
-    protocolTA = new JTextField();
+    protocolTA = new JComboBox(Protocol.values());
     protocolTA.setBounds(nextX, taY, protocolWidth, labelsHeight);
     
     JLabel sourceIPLabel = new JLabel(Filter.labels.getSourceIPLabel());
@@ -102,7 +103,7 @@ public class EditRuleDialog extends JDialog {
     
     JLabel actionLabel = new JLabel(Filter.labels.getActionLabel());
     actionLabel.setBounds(nextX += (XGap + portWidth), labelsY, actionWidth, labelsHeight);
-    actionTA = new JTextField();
+    actionTA = new JComboBox(RuleAction.values());
     actionTA.setBounds(nextX, taY, actionWidth, labelsHeight);
     
     final JTextArea logTA = new JTextArea();
@@ -122,11 +123,14 @@ public class EditRuleDialog extends JDialog {
       @Override
       public void actionPerformed(ActionEvent e) {
         logTA.setText("");
-        if(saved != null) {
+        /*if(saved != null) {
           if(!saved) {
             IPRuleCBMouseListener.panel.removeElement(rule);            
           }
-        }
+        }*/
+//        if (panel != null) {
+//          panel.removeElement(rule);              
+//        }
         dialog.dispose();
       }
     });
@@ -140,6 +144,7 @@ public class EditRuleDialog extends JDialog {
       @Override
       public void actionPerformed(ActionEvent e) {
         boolean fail = false;
+        logTA.setText("");
         int number;
         ArrayList<IP4AddressInterval> destAddress = null;
         ArrayList<IP4AddressInterval> srcAddress = null;
@@ -155,7 +160,7 @@ public class EditRuleDialog extends JDialog {
           try {
             number = Integer.parseInt(numberTA.getText());            
             if(newRule) {
-              for(IPRuleJCheckBox rulecb : rulesJB) {
+              for(IPRuleJCheckBox rulecb : panel.getRulesJB()) {
                 if(rulecb.getRule().getNumber() == number) {
                   logTA.append("Правило с номером " + number + " существует\n");
                   fail = true;
@@ -168,52 +173,43 @@ public class EditRuleDialog extends JDialog {
           }
         }
 
-        protocol = Protocol.getByLabel(protocolTA.getText());
+        protocol = (Protocol)protocolTA.getSelectedItem();
         if(protocol == null) {
-          logTA.append("Неверно указан протокол: " + protocolTA.getText() + "\n");
-          fail = true;
-        }
-        
-        /*if(!IP4AddressInterval.validate(sourceIPTA.getText())) {
-          logTA.append("Неверно указан адрес источника: " + sourceIPTA.getText() + "\n");
-          fail = true;
-        }*/
-        
-        try {
-          IP4AddressInterval inter = new IP4AddressInterval(destIPTA.getText());
-          destAddress = new ArrayList<IP4AddressInterval>();
-          destAddress.add(inter);
-        } catch (FilterExeption exeption) {
-          logTA.append("Неверно указан адрес приемника: " + destIPTA.getText() + "\n");
+          logTA.append("Неверно указан протокол\n");
           fail = true;
         }
         
         try {
-          IP4AddressInterval inter = new IP4AddressInterval(sourceIPTA.getText());
-          srcAddress = new ArrayList<IP4AddressInterval>();
-          srcAddress.add(inter);
-        } catch (FilterExeption exeption) {
-          logTA.append("Неверно указан адрес источника: " + sourceIPTA.getText() + "\n");
+          destAddress = IP4AddressInterval.strToAddress(destIPTA.getText());
+        } catch (FilterException exeption) {
+          logTA.append("Неверно указан адрес приемника: " + destIPTA.getText() + " (" + exeption.getMes() + ")" + "\n");
           fail = true;
         }
         
-        if(!InetPort.validate(sourcePortTA.getText())){
-          logTA.append("Неверно указан порт источника: " + sourcePortTA.getText() + "\n");
+        try {
+          srcAddress = IP4AddressInterval.strToAddress(sourceIPTA.getText());
+        } catch (FilterException exeption) {
+          logTA.append("Неверно указан адрес источника: " + sourceIPTA.getText() + " (" + exeption.getMes() + ")" + "\n");
           fail = true;
-        } else {
-          srcPort = IPRule.strToPort(sourcePortTA.getText());
         }
         
-        if(!InetPort.validate(destPortTA.getText())) {
-          logTA.append("Неверно указан порт приемника: " + destPortTA.getText() + "\n");
+        try {
+          srcPort = InetPort.strToPort(sourcePortTA.getText());
+        } catch (FilterException e1) {
+          logTA.append("Неверно указан порт источника: " + sourcePortTA.getText() + " (" + e1.getMes() + ")" + "\n");
           fail = true;
-        } else {
-          destPort = IPRule.strToPort(destPortTA.getText());
         }
         
-        ruleAction = RuleAction.getByLabel(actionTA.getText()); 
+        try {
+          destPort = InetPort.strToPort(destPortTA.getText());
+        } catch (FilterException e1) {
+          logTA.append("Неверно указан порт приемника: " + destPortTA.getText() + " (" + e1.getMes() + ")" + "\n");
+          fail = true;
+        }
+        
+        ruleAction = (RuleAction)actionTA.getSelectedItem(); 
         if(ruleAction == null) {
-          logTA.append("Неверно указано действие: " + actionTA.getText() + "\n");
+          logTA.append("Неверно указано действие\n");
           fail = true;
         }
         
@@ -228,6 +224,21 @@ public class EditRuleDialog extends JDialog {
             rule.setDestPort(destPort);
             rule.setRuleAction(ruleAction);
             saved = true;
+            
+            ArrayList<IPRule> newRules = new ArrayList<IPRule>();
+            newRules.add(rule);
+            
+            
+            if(panel != null) {
+              if (Filter.panelNumber == 1) {
+                if(newRules.isEmpty()) {
+                  logTA.append("Правило не принесет результата");
+                }
+                panel.setRules(Utils.getConsistentsRules(newRules, panel.getRules()));
+              } else {
+                panel.setRules(newRules);
+              }
+            }              
           }          
         }
       }
@@ -263,12 +274,12 @@ public class EditRuleDialog extends JDialog {
     saved = false;
     
     numberTA.setText("");
-    protocolTA.setText("");
+    protocolTA.setSelectedIndex(0);
     sourceIPTA.setText("");
     sourcePortTA.setText("");
     destIPTA.setText("");
     destPortTA.setText("");
-    actionTA.setText("");
+    actionTA.setSelectedIndex(0);
   }
   
   public void setRule(IPRule rule) {
@@ -280,11 +291,12 @@ public class EditRuleDialog extends JDialog {
     saved = null;
     
     numberTA.setText(new Integer(rule.getNumber()).toString());
-    protocolTA.setText(rule.getProtocol().getLabel());
-    sourceIPTA.setText(rule.getSrcAddress().get(0).toString());
-    sourcePortTA.setText(rule.getSrcPort().get(0).toString());
-    destIPTA.setText(rule.getDestAddress().get(0).toString());
-    destPortTA.setText(rule.getDestPort().get(0).toString());
-    actionTA.setText(rule.getRuleAction().getLabel());
+    protocolTA.setSelectedItem(rule.getProtocol());
+    
+    sourceIPTA.setText(rule.getSrcAddrStr());
+    sourcePortTA.setText(rule.getSrcPortStr());
+    destIPTA.setText(rule.getDestAddrStr());
+    destPortTA.setText(rule.getDestPortStr());
+    actionTA.setSelectedItem(rule.getRuleAction());
   }
 }

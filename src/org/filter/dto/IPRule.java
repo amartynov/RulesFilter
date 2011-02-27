@@ -8,7 +8,7 @@ import org.filter.RuleAction;
 import org.filter.common.Activity;
 import org.filter.common.IP4AddressInterval;
 import org.filter.common.InetPort;
-import org.filter.exeption.FilterExeption;
+import org.filter.exeption.FilterException;
 
 public class IPRule extends Rule {
 	//ip:12:accept:log:0:1:0:tcp:195.208.113.132/255.255.255.255:any:77.88.21.0/255.255.255.0:http:any:any:any:65535:0-255:any:active:yandex
@@ -103,38 +103,6 @@ public class IPRule extends Rule {
 		this.srcPort = srcPort;
 	}
 	
-	public static ArrayList<InetPort> strToPort(String portStr) {
-		ArrayList<InetPort> portsArray = new ArrayList<InetPort>();
-		String[] ports = portStr.split(",");
-		for (String p : ports){
-			if(p.equals("any")){
-				portsArray.add(new InetPort(0, InetPort.maxPort));
-			} else {
-				String[] val = p.split("-");
-				if(val.length == 1){
-					Integer n = null;
-					InetPort iPort = null;
-					try{
-						n = Integer.parseInt(val[0]);
-						iPort = new InetPort(n);
-					} catch (Exception e) {
-						iPort = new InetPort(val[0]);
-						if(iPort.getPort() == null) {
-							log = "unknown port label: " + p;
-							return null;
-						}
-					}
-					portsArray.add(iPort);
-				} else if(val.length == 2) {
-					Integer min = Integer.parseInt(val[0]);
-					Integer max = Integer.parseInt(val[1]);
-					portsArray.add(new InetPort(min, max));
-				}
-			}
-		}
-		return portsArray;
-	}
-
 	public ArrayList<InetPort> getDestPort() {
 		return destPort;
 	}
@@ -204,10 +172,9 @@ public class IPRule extends Rule {
 		Activity a;
 		StringBuilder sb = new StringBuilder();
 		switch(p){
-		case ICMP:
-			//TODO:
-		  list2.add(str);
-			return null;
+//		case ICMP:
+//		  list2.add(str);
+//			return null;
 			/*rule.setSrcAddress(strToAddress(params[8]));
 //			rule.setSrcPort(strToPort(params[9]));
 			rule.setDestAddress(strToAddress(params[9]));
@@ -227,19 +194,29 @@ public class IPRule extends Rule {
 			break;*/
 		case TCP:
 		  try {
-        rule.setSrcAddress(strToAddress(params[8]));
-      } catch (FilterExeption e) {
+        rule.setSrcAddress(IP4AddressInterval.strToAddress(params[8]));
+      } catch (FilterException e) {
         log = rule.getMessage() + ": invalid source address";
         return null;
       }
-			rule.setSrcPort(strToPort(params[9]));
 			try {
-        rule.setDestAddress(strToAddress(params[10]));
-      } catch (FilterExeption e) {
+        rule.setSrcPort(InetPort.strToPort(params[9]));
+      } catch (FilterException e) {
+        log = rule.getMessage() + " source port: " + e.getMes();
+        return null;
+      }
+			try {
+        rule.setDestAddress(IP4AddressInterval.strToAddress(params[10]));
+      } catch (FilterException e) {
         log = rule.getMessage() + ": invalid destin address";
         return null;
       }
-			rule.setDestPort(strToPort(params[11]));
+			try {
+        rule.setDestPort(InetPort.strToPort(params[11]));
+      } catch (FilterException e) {
+        log = rule.getMessage() + " destin port: " + e.getMes();
+        return null;
+      }
 			/*
 			rule.setPriority(params[12]);
 			rule.setFlags_TOS(params[13]);
@@ -261,19 +238,29 @@ public class IPRule extends Rule {
 			break;
 		case UDP:
 		  try {
-		    rule.setSrcAddress(strToAddress(params[8]));		    
-		  } catch (FilterExeption e) {
-        log = rule.getMessage() + ": invalid source address";
+		    rule.setSrcAddress(IP4AddressInterval.strToAddress(params[8]));		    
+		  } catch (FilterException e) {
+        log = rule.getMessage() + " source address: " + e.getMes();
         return null;
       }
-			rule.setSrcPort(strToPort(params[9]));
+		  try {
+		    rule.setSrcPort(InetPort.strToPort(params[9]));		    
+		  } catch (FilterException e) {
+        log = rule.getMessage() + " source port: " + e.getMes();
+        return null;
+      }
 			try {
-			  rule.setDestAddress(strToAddress(params[10]));
-      } catch (FilterExeption e) {
+			  rule.setDestAddress(IP4AddressInterval.strToAddress(params[10]));
+      } catch (FilterException e) {
         log = rule.getMessage() + ": invalid destin address";
         return null;
       }
-			rule.setDestPort(strToPort(params[11]));
+			try {
+        rule.setDestPort(InetPort.strToPort(params[11]));
+      } catch (FilterException e) {
+        log = rule.getMessage() + " destin port: " + e.getMes();
+        return null;
+      }
 			/*
 			rule.setPriority(params[12]);
 			rule.setFlags_TOS(params[13]);
@@ -351,15 +338,6 @@ public class IPRule extends Rule {
     return res;
 	}
 	
-	private static ArrayList<IP4AddressInterval> strToAddress(String str) throws FilterExeption {
-		ArrayList<IP4AddressInterval> res = new ArrayList<IP4AddressInterval>();
-		String[] buf = str.split(",");
-		for(String addr : buf){
-		  res.add(new IP4AddressInterval(addr));		    
-		}
-		return res;
-	}
-	
 	public ArrayList<LineProjection> getProtocolLineList(){
 	  if(protocol == null) return null;
 	  ArrayList<LineProjection> res = new ArrayList<LineProjection>();
@@ -385,9 +363,9 @@ public class IPRule extends Rule {
 	    sb.append(AddressListToString(getDestAddress())).append(":").append(PortListToString(getDestPort())).append(":");
 	    sb.append(getInfoBuf()).append(":").append(getActivity()).append(":").append(getComment());
 	    break;
-	  case ICMP:
+	  //case ICMP:
 	    //sb.append(AddressListToString(getDestAddress())).append(":");
-	    break;
+	   // break;
 	  }
 	  return sb.toString();
 	}
@@ -702,6 +680,42 @@ public class IPRule extends Rule {
     ArrayList<Protocol> res = new ArrayList<Protocol>();
     res.add(inter.getProtocol());
     return res;
+  }
+  
+  public String getSrcAddrStr() {
+    return getAddrStr(srcAddress);
+  }
+  
+  public String getDestAddrStr() {
+    return getAddrStr(destAddress);
+  }
+  
+  private String getAddrStr(ArrayList<IP4AddressInterval> addr) {
+    String res = addr.get(0).toString();
+    int i;
+    for(i = 1; i < addr.size(); i++) {
+      res += "," + addr.get(i).toString();
+    }
+    return res;
+    
+  }
+  
+  public String getSrcPortStr() {
+    return getPortStr(srcPort);
+  }
+  
+  public String getDestPortStr() {
+    return getPortStr(destPort);
+  }
+  
+  private String getPortStr(ArrayList<InetPort> port) {
+    String res = port.get(0).toString();
+    int i;
+    for(i = 1; i < port.size(); i++) {
+      res += "," + port.get(i).toString();
+    }
+    return res;
+    
   }
 
 }

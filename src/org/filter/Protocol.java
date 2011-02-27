@@ -4,8 +4,8 @@ import org.filter.dto.LineProjection;
 
 public enum Protocol {
 	UDP("udp"),
-	TCP("tcp"),
-	ICMP("icmp");
+	TCP("tcp");
+	//ICMP("icmp");
 	
 	private String label;
 	

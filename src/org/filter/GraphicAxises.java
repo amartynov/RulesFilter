@@ -4,7 +4,7 @@ public enum GraphicAxises {
 	srcIP("Source IP", "srcIP"),
 	destIP("Destination IP", "destIP"),
 	srcPort("Source Port", "srcPort"),
-	destPort("Destination Port", "destPOrt"),
+	destPort("Destination Port", "destPort"),
 	protocol("Protocol", "protocol");
 	
 	private String value;

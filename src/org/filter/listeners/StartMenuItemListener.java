@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import org.filter.Filter;
 import org.filter.common.Activity;
 import org.filter.dto.IPRule;
-import org.filter.dto.IPRuleIntersection;
+import org.filter.utils.Utils;
 import org.filter.viewelements.CheckBoxPanel;
 import org.filter.viewelements.IPRuleJCheckBox;
 import org.filter.viewelements.MainMenu;
@@ -17,7 +17,7 @@ public class StartMenuItemListener implements ActionListener {
   @Override
   public void actionPerformed(ActionEvent e) {
     Filter.clearOutput();
-    ArrayList<IPRule> buf = new ArrayList<IPRule>();
+    /*ArrayList<IPRule> buf = new ArrayList<IPRule>();
     ArrayList<IPRule> toDelete = new ArrayList<IPRule>();
     ArrayList<IPRule> toInsert = new ArrayList<IPRule>();
     for(IPRuleJCheckBox iruleJCB : Filter.inputCBList) {
@@ -76,12 +76,24 @@ public class StartMenuItemListener implements ActionListener {
           }          
         }
       }
+    }*/
+    
+    ArrayList<IPRule> newRules = new ArrayList<IPRule>();
+    ArrayList<IPRule> oldRules = new ArrayList<IPRule>();
+    
+    for(IPRuleJCheckBox iruleJCB : Filter.inputCBList) {
+      IPRule irule = iruleJCB.getRule();
+      if(irule.getActivity() == Activity.active && iruleJCB.isEnabled()) {
+        newRules.add(irule);
+      }
     }
+    
+    Filter.outputIpRules.addAll(Utils.getConsistentsRules(newRules, oldRules));
     
     ((CheckBoxPanel)Filter.outputPanel.getComponent(0)).setRules(Filter.outputIpRules);
     for(ActionListener al : MainMenu.exportFileItem.getActionListeners()) {
       if(al instanceof ExportFileMenuItemListener){
-        ((ExportFileMenuItemListener) al).setOutputRulesList(Filter.outputIpRules);
+        ((ExportFileMenuItemListener) al).setPanel(((CheckBoxPanel)Filter.outputPanel.getComponent(0)));
       }
     }
     MainMenu.exportFileItem.setEnabled(true);
